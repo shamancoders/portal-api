@@ -1,0 +1,27 @@
+{
+	"dbdefine":{
+		"inputFields":["_id","owner","createdDate","modifiedDate","__v","userDb","userDbHost", "deleted","__v"],
+    	"outputFields":["__v", "createdDate","modifiedDate","deleted","userDb","userDbHost"]
+	},
+	"locations":{
+		"inputFields":["_id","createdDate","modifiedDate","__v"],
+    	"outputFields":["__v", "createdDate","modifiedDate"]
+	},
+	"pos-devices":{
+		"inputFields":["_id","createdDate","modifiedDate","__v"],
+    	"outputFields":["__v", "createdDate","modifiedDate"]
+	},
+	"pos-device-services":{
+		"inputFields":["_id","createdDate","modifiedDate","__v"],
+    	"outputFields":["__v", "createdDate","modifiedDate"]
+	},
+    "accounts":{
+        "inputFields":["_id","createdDate","modifiedDate","__v","accountCode", "balanceAmount","balanceQuantity","balanceQuantity2","balanceQuantity3","balanceReports"],
+        "outputFields":["__v", "createdDate","modifiedDate"]
+    },
+	"standart":{
+		"inputFields":["createdDate","modifiedDate","__v", "deleted"],
+    	"outputFields":["__v", "deleted"]
+	}
+}
+

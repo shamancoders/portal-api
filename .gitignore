@@ -1,6 +1,19 @@
+key_stores/
+node_modules/
+platforms/
+plugins/
+
 # Logs
 logs
 *.log
+*.zip
+*.bat
+config*.json*
+* - Copy.*
+*private*
+*temp*
+*-lock.json
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
