@@ -17,18 +17,20 @@ global.fileImporter = require('./lib/file_importer')
 global.documentHelper = require('./lib/document_helper')
 global.printHelper = require('./lib/print_helper')
 global.programs=require('./services/programs/programs')
-
+global.auth=require('./lib/rest-helper')(config.passport_api)
 global.app = express()
 var cors = require('cors')
 app.use(cors())
 var flash = require('connect-flash')
+
+app.use(favicon(path.join(__dirname,'resources','web-icon.png')))
 
 app.use(logger('dev'))
 app.use(bodyParser.json({limit: "100mb"}))
 app.use(bodyParser.urlencoded({limit: "100mb", extended: true, parameterLimit:50000}))
 app.use(cookieParser())
 app.use(methodOverride())
-app.use(methodOverride())
+
 
 indexRouter(app)
 testControllers(false)
