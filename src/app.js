@@ -7,17 +7,13 @@ var logger = require('morgan')
 var favicon = require('serve-favicon')
 var methodOverride = require('method-override')
 
-var indexRouter = require('./routes/index')
+//var indexRouter = require('./routes/index')
 var dbLoader = require('./db/db-loader')
 var httpServer=require('./lib/http-server.js')
 
 global.staticValues=require('./resources/static-values.json')
 
-global.fileImporter = require('./lib/file_importer')
-global.documentHelper = require('./lib/document_helper')
-global.printHelper = require('./lib/print_helper')
-global.programs=require('./services/programs/programs')
-global.auth=require('./lib/rest-helper')(config.passport_api)
+
 global.app = express()
 var cors = require('cors')
 app.use(cors())
@@ -31,15 +27,15 @@ app.use(bodyParser.urlencoded({limit: "100mb", extended: true, parameterLimit:50
 app.use(cookieParser())
 app.use(methodOverride())
 
+//indexRouter(app)
 
-indexRouter(app)
-testControllers(false)
-
-app.set('name',require('./package').name)
-app.set('version',require('./package').version)
 app.set('port',config.httpserver.port)
 
-
+global.fileImporter = require('./lib/file_importer')
+global.documentHelper = require('./lib/document_helper')
+global.printHelper = require('./lib/print_helper')
+global.programs=require('./services/programs/programs')
+global.auth=require('./lib/rest-helper')(config.passport_api)
 
 process.on('uncaughtException', function (err) {
 	errorLog('Caught exception: ', err)
@@ -56,6 +52,8 @@ module.exports=()=>{
 		dbLoader((err)=>{
 			if(!err){
 				
+				require('./routes/index')(app)
+				testControllers(false)
 			}else{
 				errorLog(err)
 			}

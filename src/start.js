@@ -1,10 +1,8 @@
 global.__root=__dirname
-require('./lib/initialize-app')
+require('./lib/initialize-app')(()=>{
+	require('./app')()
+})
 
-var start=require('./app')
 
-appInfo()
-
-start()
 
 

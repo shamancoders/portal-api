@@ -1,7 +1,7 @@
-var express = require('express')
-var router = express.Router()
+// var express = require('express')
+// var router = express.Router()
 var passport=require('./passport')
-var passportWeb=require('./passport-web')
+
 var protectedFields=require('./protected-fields.json')
 var appJsModifiedDate=(new Date(fs.statSync(path.join(__dirname,'../app.js')).mtime)).yyyymmddhhmmss() 
 
@@ -17,7 +17,7 @@ module.exports=(app)=>{
 	
 	masterControllers(app)
 	clientControllers(app)
-		
+
 
 	// catch 404 and forward to error handler
 	app.use((req, res, next)=>{
@@ -34,27 +34,14 @@ function clientControllers(app){
 		next()
 	})
 
-	
-	app.all('/api/v1/:dbId/:func', (req, res, next)=>{
-		setRepoAPIFunctions(req,res,next)
-	})
-	app.all('/api/v1/:dbId/:func/:param1', (req, res, next)=>{
-		setRepoAPIFunctions(req,res,next)
-	})
-	app.all('/api/v1/:dbId/:func/:param1/:param2', (req, res, next)=>{
-		setRepoAPIFunctions(req,res,next)
-	})
-
-	app.all('/api/v1/:dbId/:func/:param1/:param2/:param3', (req, res, next)=>{
-		setRepoAPIFunctions(req,res,next)
-	})
+	setRoutes(app,'/api/v1/:dbId/:func/:param1/:param2/:param3',setRepoAPIFunctions)
 
 	function setRepoAPIFunctions(req,res,next){
+		var ctl=getRepoController(req.params.func)
+		if(!ctl){
+			return next()
+		}
 		passport(req,res,(member)=>{
-			var ctl=getRepoController(req.params.func)
-			if(!ctl){
-				return next()
-			}
 			repoDbModel(req.params.dbId,(err,dbModel)=>{
 				if(!err){
 					ctl(dbModel,member,req,res,next,(data)=>{
@@ -99,7 +86,7 @@ function clientControllers(app){
 
 function masterControllers(app){
 	app.all('/api', function(req, res) {
-		res.status(200).json({success: true, data:`Welcome to GanyGo.master API V1. Last modified:${appJsModifiedDate}. Your path:/api ,Please use: /api/v1[/:dbId]/:func/[:param1]/[:param2]/[:param3] . Methods: GET, POST, PUT, DELETE`})
+		res.status(200).json({success: true, data:`Welcome to Gany.master API V1. Last modified:${appJsModifiedDate}. Your path:/api ,Please use: /api/v1[/:dbId]/:func/[:param1]/[:param2]/[:param3] . Methods: GET, POST, PUT, DELETE`})
 	})
 
 	app.all('/api/v1', function(req, res) {
@@ -110,42 +97,17 @@ function masterControllers(app){
 		res.status(200).json({success: true, data:`Welcome to GanyGo.web API V1. Last modified:${appJsModifiedDate}. Your path:/api/v1 ,Please use: /api/v1/web[/:dbId]/:func/[:param1]/[:param2]/[:param3] . Methods: GET, POST, PUT, DELETE`})
 	})
 
-	app.all('/api/v1/web/:func', function(req, res,next) {
-		setWebAPIFunctions(req,res,next)
-	})
-	app.all('/api/v1/web/:func/:param1', function(req, res,next) {
-		setWebAPIFunctions(req,res,next)
-	})
+	setRoutes(app,'/api/v1/web/:func/:param1/:param2/:param3',setWebAPIFunctions)
+	setRoutes(app,'/api/v1/:func/:param1/:param2/:param3',setAPIFunctions)
 
-	app.all('/api/v1/web/:func/:param1/:param2', function(req, res,next) {
-		setWebAPIFunctions(req,res,next)
-	})
-
-	app.all('/api/v1/web/:func/:param1/:param2/:param3', function(req, res,next) {
-		setWebAPIFunctions(req,res,next)
-	})
-
-	app.all('/api/v1/:func', function(req, res,next) {
-		setAPIFunctions(req,res,next)
-	})
-	app.all('/api/v1/:func/:param1', function(req, res,next) {
-		setAPIFunctions(req,res,next)
-	})
-
-	app.all('/api/v1/:func/:param1/:param2', function(req, res,next) {
-		setAPIFunctions(req,res,next)
-	})
-
-	app.all('/api/v1/:func/:param1/:param2/:param3', function(req, res,next) {
-		setAPIFunctions(req,res,next)
-	})
-
+	
 	function setAPIFunctions(req, res,next){
+		let ctl=getController(req.params.func)
+		if(!ctl){
+			return next()
+		}
 		passport(req,res,(member)=>{
-			let ctl=getController(req.params.func)
-			if(!ctl){
-				return next()
-			}
+			
 			ctl(member,req,res,next,(data)=>{
 				
 				if(data==undefined)
@@ -168,18 +130,18 @@ function masterControllers(app){
 
 		let controllerName=path.join(__root,'controllers/master',`${funcName}.controller.js`)
 		if(fs.existsSync(controllerName)==false){
-			return
+			return null
 		}else{
 			return require(controllerName)
 		}
 	}
 
 	function setWebAPIFunctions(req, res,next){
+		let ctl=getWebController(req.params.func)
+		if(!ctl){
+			return next()
+		}
 		passportWeb(req,res,(member)=>{
-			let ctl=getWebController(req.params.func)
-			if(!ctl){
-				return next()
-			}
 			ctl(member,req,res,next,(data)=>{
 				
 				if(data==undefined)
@@ -251,6 +213,23 @@ function clearProtectedFields(funcName,data,cb){
 	
 }
 
+function setRoutes(app,route, cb1, cb2) {
+	let dizi=route.split('/:')
+	let yol=''
+	dizi.forEach((e,index)=>{
+		if(index>0){
+			yol+=`/:${e}`
+			if(cb1!=undefined && cb2==undefined){
+				app.all(yol,cb1)	
+			}else if(cb1!=undefined && cb2!=undefined){
+				app.all(yol,cb1,cb2)
+			}
+			
+		}else{
+			yol+=e
+		}
+	})
+}
 
 global.error={
 	param1:function(req, next){
