@@ -26,7 +26,7 @@ function getMyProfile(member,req,res,next,cb){
 		populate.push({path:'images', select:'_id data rotate marginTop marginLeft zoom'})
 	}
 
-	db.members.findOne({_id:member._id}).select(select).populate(populate).exec((err,doc)=>{
+	db.portal_members.findOne({_id:member._id}).select(select).populate(populate).exec((err,doc)=>{
 		if(dberr(err, next)){
 			if(dbnull(doc, next)){
 				doc=doc.toJSON()
@@ -59,7 +59,7 @@ function getMyProfile(member,req,res,next,cb){
 }
 
 function put(member,req,res,next,cb){
-	db.members.findOne({_id:member._id},(err,doc)=>{
+	db.portal_members.findOne({_id:member._id},(err,doc)=>{
 		if(dberr(err, next)){
 			if(dbnull(doc, next)){
 				let data=req.body || {}

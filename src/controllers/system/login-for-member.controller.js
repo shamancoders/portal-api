@@ -20,7 +20,7 @@ function login(member,req,res,next, cb){
         var data = req.body || {}
         
         data._id = req.params.param1
-        db.members.findOne({_id:data._id},function(err,doc){
+        db.portal_members.findOne({_id:data._id},function(err,doc){
             if(dberr(err,next)){
                 if(doc==null)
                 	next({code:'LOGIN_FAILED',message:'Giriş başarısız'})

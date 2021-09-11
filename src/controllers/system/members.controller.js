@@ -30,7 +30,7 @@ function getList(member,req,res,next,cb){
 	if(req.query.username){
 		filter['username']={ $regex: '.*' + req.query.username + '.*' ,$options: 'i' }
 	}
-	db.members.paginate(filter,options,(err, resp)=>{
+	db.portal_members.paginate(filter,options,(err, resp)=>{
 		if(dberr(err,next)){
 			cb(resp)
 		}
@@ -38,7 +38,7 @@ function getList(member,req,res,next,cb){
 }
 
 function getOne(member,req,res,cb){
-	db.members.findOne({_id:req.params.param1},(err,doc)=>{
+	db.portal_members.findOne({_id:req.params.param1},(err,doc)=>{
 		if(dberr(err,next)){
 			cb(doc)
 		}
@@ -48,7 +48,7 @@ function getOne(member,req,res,cb){
 function post(member,req,res,cb){
 	var data = req.body || {}
 	
-	var newDoc = new db.members(data)
+	var newDoc = new db.portal_members(data)
 	if(!epValidateSync(newDoc,next))
 		return
 	newDoc.save(function(err, newDoc2) {
@@ -70,12 +70,12 @@ function put(member,req,res,next,cb){
 		data._id = req.params.param1
 		data.modifiedDate = new Date()
 
-		db.members.findOne({ _id: data._id},(err,doc)=>{
+		db.portal_members.findOne({ _id: data._id},(err,doc)=>{
 			if(dberr(err,next))
 				if(dbnull(doc,next)){
 					
 					var doc2 = Object.assign(doc, data)
-					var newDoc = new db.members(doc2)
+					var newDoc = new db.portal_members(doc2)
 					if(!epValidateSync(newDoc,next))
 					return
 					newDoc.save(function(err, newDoc2) {
@@ -96,7 +96,7 @@ function deleteItem(member,req,res,next,cb){
 	
 	var data = req.body || {}
 	data._id = req.params.param1
-	db.members.removeOne(member,{ _id: data._id},(err,doc)=>{
+	db.portal_members.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
 			cb(null)
 		}

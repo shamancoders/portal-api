@@ -1,6 +1,6 @@
 var helper=require('./mydbdefines.helper')
 module.exports = (member, req, res, next, cb)=>{
-
+	
 	switch(req.method){
 		case 'GET':
 		if(req.params.param1!=undefined){

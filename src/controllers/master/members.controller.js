@@ -27,7 +27,7 @@ module.exports = (member, req, res, next, cb)=>{
 function getOne(member,req,res,next,cb){
 	var filter={_id:req.params.param1}
 
-	db.members.findOne(filter).select('_id username name lastName').exec((err,doc)=>{
+	db.portal_members.findOne(filter).select('_id username name lastName').exec((err,doc)=>{
 		if(dberr(err, next)){
 			if(dbnull(doc, next)){
 				cb(doc)
@@ -54,7 +54,7 @@ function getList(member,req,res,next,cb){
 		]
 	}
 
-	db.members.paginate(filter,options,(err, resp)=>{
+	db.portal_members.paginate(filter,options,(err, resp)=>{
 		if(dberr(err, next)){
 			cb(resp)
 		}
@@ -68,7 +68,7 @@ function getIdList(member, req, res, next, cb){
 
 	filter['_id']={$in:idList}
 
-	db.members.find(filter).select('_id username name lastName').exec((err, docs)=>{
+	db.portal_members.find(filter).select('_id username name lastName').exec((err, docs)=>{
 		if(dberr(err,next)){
 			cb(docs)
 		}
