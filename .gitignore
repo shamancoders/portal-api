@@ -12,6 +12,7 @@ logs
 *.bat
 config*.json*
 * - Copy.*
+!!__*
 *private*
 *temp*
 *-lock.json

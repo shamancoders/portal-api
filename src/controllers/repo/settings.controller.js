@@ -4,7 +4,7 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 		if(req.params.param1!=undefined){
 			getOne(dbModel, member, req, res, next, cb)
 		}else{
-			getList(dbModel, member, req, res, next, cb)
+			exports.getList(dbModel, member, req, res, next, cb)
 		}
 		break
 		case 'POST':
@@ -23,7 +23,7 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 
 }
 
-function getList(dbModel, member, req, res, next, cb){
+exports.getList=function(dbModel, member, req, res, next, cb){
 	
 	var options={page: (req.query.page || 1)}
 	if(!req.query.page){

@@ -102,14 +102,11 @@ function masterControllers(app){
 
 	
 	function setAPIFunctions(req, res,next){
-		console.log(`req.params.func:`,req.params.func)
 		let ctl=getController(req.params.func)
 		if(!ctl){
-			console.log(`${req.params.func}: bulunamadi`)
 			return next()
 		}
 		passport(req,res,(member)=>{
-			console.log(`member:`,member)
 			ctl(member,req,res,next,(data)=>{
 				
 				if(data==undefined)

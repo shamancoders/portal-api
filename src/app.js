@@ -12,6 +12,7 @@ var dbLoader = require('./db/db-loader')
 var httpServer=require('./lib/http-server.js')
 
 global.staticValues=require('./resources/static-values.json')
+global.version='20210916'
 
 
 global.app = express()
@@ -51,7 +52,7 @@ module.exports=()=>{
 	httpServer(app,(err,server,port)=>{
 		dbLoader((err)=>{
 			if(!err){
-				
+				require('./init-static-values.js')()
 				require('./routes/index')(app)
 				testControllers(false)
 			}else{
