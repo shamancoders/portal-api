@@ -14,6 +14,7 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 			getList(dbModel, member, req, res, next, cb)
 		}
 		break
+		
 		case 'POST':
 		if(req.params.param1=='transfer'){
 			transfer(dbModel, member, req, res, next, cb)

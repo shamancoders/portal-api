@@ -55,6 +55,8 @@ module.exports=()=>{
 				require('./init-static-values.js')()
 				require('./routes/index')(app)
 				testControllers(false)
+				// console.log(`restServices:`,restServices)
+				// console.log(`config.restServices:`,config.restServices)
 			}else{
 				errorLog(err)
 			}

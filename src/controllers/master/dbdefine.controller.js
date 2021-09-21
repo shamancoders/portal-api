@@ -84,7 +84,6 @@ function getList(member,req,res,next,cb){
 	})
 }
 
-
 function post(member,req,res,next,cb){
 	var data = req.body || {}
 	if(!data.hasOwnProperty("dbName"))
@@ -111,7 +110,7 @@ function post(member,req,res,next,cb){
 				newDoc.save(function(err, newDoc2) {
 					if (!err) {
 						newDoc2.userDb=`userdb-${newDoc2._id}`
-						newDoc2.userDbHost=config.mongodb.userAddress
+						newDoc2.userDbHost=userMongoServerAddress()
 						newDoc2.save((err,newDoc3)=>{
 							if(dberr(err, next)){
 								cb(newDoc3)
@@ -126,19 +125,17 @@ function post(member,req,res,next,cb){
 	})
 }
 
-
-// function newUserDb(_id,userDb,userDbHost,dbName,cb){
-
-// 	loadUserDb(_id,userDb,userDbHost,dbName,(err)=>{
-// 		if(!err){
-// 			cb(null)
-// 		}else{
-// 			next({code:'NEW_USERDB',message:err.message})
-// 		}
-// 	})
-
-// }
-
+function userMongoServerAddress(){
+	if((config.mongodb.server1 || '')!=''){
+		return config.mongodb.server1
+	}else if((config.mongodb.server2 || '')!=''){
+		return config.mongodb.server2
+	}else if((config.mongodb.server3 || '')!=''){
+		return config.mongodb.server3
+	}else{
+		return config.mongodb.master || ''
+	}
+}
 
 function put(member,req,res,next,cb){
 	if(req.params.param1==undefined)

@@ -1,14 +1,11 @@
-var myDbDefinesHelper = require('./mydbdefines.helper')
-
-
 module.exports = (member, req, res, next, cb) => {
 	switch (req.method) {
 		case 'PUT':
 		case 'POST':
 			if(req.params.param1 == undefined) {
-				exports.newSession(member, req, res, next, cb)
+				newSession(member, req, res, next, cb)
 			} else if(req.params.param1.toLowerCase() == 'changedb') {
-				exports.changeDb(member, req, res, next, cb)
+				changeDb(member, req, res, next, cb)
 			} else {
 				error.param1(req, next)
 			}
@@ -21,8 +18,8 @@ module.exports = (member, req, res, next, cb) => {
 }
 
 
-exports.newSession = function(member, req, res, next, cb) {
-	exports.checkMember(member, req, res, next, (memberDoc) => {
+function newSession(member, req, res, next, cb) {
+	checkMember(member, req, res, next, (memberDoc) => {
 		let newSession = db.sessions({
 			memberId: member._id,
 			username: member.username,
@@ -41,11 +38,25 @@ exports.newSession = function(member, req, res, next, cb) {
 				if(sonGiris.length > 0)
 					lastLoginDbId = sonGiris[0].dbId
 
-				myDbDefinesHelper.getList(member, req, res, next, (databases) => {
+				myDbDefines(member, req, res, next, (databases) => {
+					if(lastLoginDbId != '') {
+						databases.forEach((e) => {
+							if(e._id == lastLoginDbId) {
+								dbObj = e
+								return
+							}
+						})
+					}
+					if(!dbObj && databases.length > 0)
+						dbObj = databases[databases.length - 1]
+
+					if(dbObj) {
+						newSession.dbId = dbObj._id
+						newSession.dbName = dbObj.dbName
+					}
 					newSession.save((err, newSession2) => {
 						if(dberr(err, next)) {
 							let sessionData = newSession2.toJSON()
-							let dbObj = null
 							sessionData.version = portalConstants.version
 							sessionData.staticValues = portalConstants.staticValues
 							sessionData.pages = portalConstants.pages
@@ -53,27 +64,16 @@ exports.newSession = function(member, req, res, next, cb) {
 							sessionData.menu = []
 							sessionData.settings = []
 
-							if(lastLoginDbId != '') {
-								databases.forEach((e) => {
-									if(e._id == lastLoginDbId) {
-										dbObj = e
-										return
-									}
-								})
-							}
-							if(!dbObj && databases.length > 0)
-								dbObj = databases[databases.length - 1]
-
-
 							if(dbObj) {
-								sessionData.dbId = dbObj._id
-								sessionData.dbName = dbObj.dbName
 								sessionData.menu = menuMixOneDatabase(portalConstants.mainMenu, dbObj)
-							}
-							dbSettings(dbObj._id, next, (settings) => {
-								sessionData.settings = settings
+								dbSettings(dbObj._id, next, (settings) => {
+									sessionData.settings = settings
+									cb(sessionData)
+								})
+							}else{
 								cb(sessionData)
-							})
+							}
+
 
 						}
 					})
@@ -85,7 +85,7 @@ exports.newSession = function(member, req, res, next, cb) {
 
 }
 
-exports.changeDb = function(member, req, res, next, cb) {
+function changeDb(member, req, res, next, cb) {
 	let dbId = (req.body || {}).db || (req.query || {}).db || ''
 	let sessionId = (req.body || {}).sid || (req.query || {}).sid || ''
 
@@ -98,21 +98,29 @@ exports.changeDb = function(member, req, res, next, cb) {
 		if(dberr(err, next)) {
 			if(sessionDoc == null)
 				return next({ code: 'SESSION_NOT_FOUND', message: 'Oturum sonlandırılmış. Tekrar giriş yapınız.' })
-			myDbDefinesHelper.getList(member, req, res, next, (databases) => {
+			myDbDefines(member, req, res, next, (databases) => {
 				let dbObj = databases.find(e => e._id == dbId)
 				if(!dbObj)
 					return next({ code: 'DATABASE_NOT_FOUND', message: `${dbId} Veri ambarı bulunamadı` })
-				let sessionData = sessionDoc.toJSON()
-				sessionData.databases = databases
-				sessionData.dbId = dbObj._id
-				sessionData.dbName = dbObj.dbName
-				sessionData.version = portalConstants.version
-				sessionData.staticValues = portalConstants.staticValues
-				sessionData.pages = portalConstants.pages
-				sessionData.menu = menuMixOneDatabase(portalConstants.mainMenu, dbObj)
-				dbSettings(dbObj._id, next, (settings) => {
-					sessionData.settings = settings
-					cb(sessionData)
+				sessionDoc.dbId = dbObj._id
+				sessionDoc.dbName = dbObj.dbName
+				sessionDoc.lastOnline = new Date()
+
+				sessionDoc.save((err, sessionDoc2) => {
+					if(dberr(err, next)) {
+						let sessionData = sessionDoc2.toJSON()
+						sessionData.databases = databases
+						sessionData.dbId = dbObj._id
+						sessionData.dbName = dbObj.dbName
+						sessionData.version = portalConstants.version
+						sessionData.staticValues = portalConstants.staticValues
+						sessionData.pages = portalConstants.pages
+						sessionData.menu = menuMixOneDatabase(portalConstants.mainMenu, dbObj)
+						dbSettings(dbObj._id, next, (settings) => {
+							sessionData.settings = settings
+							cb(sessionData)
+						})
+					}
 				})
 			})
 		}
@@ -183,7 +191,7 @@ function dbSettings(dbId, next, cb) {
 	})
 }
 
-exports.checkMember = function(member, req, res, next, cb) {
+function checkMember(member, req, res, next, cb) {
 	db.portal_members.findOne({ _id: member._id }, (err, doc) => {
 		if(dberr(err, next)) {
 			if(doc == null) {
@@ -287,4 +295,39 @@ function menuModule(menu, modules) {
 		}
 
 	}
+}
+
+function myDbDefines(member, req, res, next, cb) {
+	db.dbdefines.find({ deleted: false, passive: false, $or: [{ owner: member._id }, { 'authorizedMembers.memberId': member._id }] }).populate('owner', '_id username name lastName modules').exec((err, docs) => {
+		if (!err) {
+			let data = []
+			docs.forEach((e) => {
+				let auth = { owner: false, canRead: false, canWrite: false, canDelete: false }
+				let isMine=false
+				if (e.owner._id.toString() == member._id.toString()) {
+					auth.owner = true
+					auth.canRead = true
+					auth.canWrite = true
+					auth.canDelete = true
+					isMine=true
+				} else {
+					e.authorizedMembers.forEach((e2) => {
+						if (e2.memberId.toString() == member._id.toString()) {
+							auth.canRead = e2.canRead
+							auth.canWrite = e2.canWrite
+							auth.canDelete = e2.canDelete
+							return
+						}
+					})
+					isMine=false
+				}
+				if (auth.canRead) {
+					data.push({ _id: e._id, dbName: e.dbName,isMine:isMine,  owner: e.owner, auth: auth })
+				}
+			})
+			cb(data)
+		} else {
+			next({ code: err.name, message: err.message })
+		}
+	})
 }

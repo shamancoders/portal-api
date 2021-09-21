@@ -1,5 +1,4 @@
 exports.run=(dbModel, programDoc, data, cb)=>{
-	console.log(`buraya geliyor programDoc.type:`,programDoc.type)
 	switch(programDoc.type){
 		case 'collection-process':
 		collectionProcess(dbModel,programDoc,data,cb)
@@ -27,6 +26,97 @@ exports.run=(dbModel, programDoc, data, cb)=>{
 		break
 	}
 }
+
+function connectorExporter(dbModel,programDoc,data,cb){
+	if(programDoc.collections.length==0)
+		return cb({code:'WRONG_PARAMETER',message:'Collection secilmemis'})
+	if(programDoc.collections[0].name=='')
+		return cb({code:'WRONG_PARAMETER',message:'Collection secilmemis'})
+
+	var data2=dataDuzelt(data)
+
+	var collection=clone(programDoc.collections[0])
+
+	if((collection.filter || '').trim()!=''){
+		if(!(collection.filter.trim().substr(0,1)=='{' && collection.filter.trim().substr(-1,1)=='}')){
+			collection.filter='{' + collection.filter + '}'
+		}
+		try{
+			collection.filter=JSON.parse(collection.filter)
+		}catch(tryErr){	}
+	}
+
+	if((collection.updateExpression || '').trim()!=''){
+		if(!(collection.updateExpression.trim().substr(0,1)=='{' && collection.updateExpression.trim().substr(-1,1)=='}')){
+			collection.updateExpression='{' + collection.updateExpression + '}'
+		}
+		try{
+			collection.updateExpression=JSON.parse(collection.updateExpression)
+		}catch(tryErr){	}
+	}
+
+	if((collection.updateErrorExpression || '').trim()!=''){
+		if(!(collection.updateErrorExpression.trim().substr(0,1)=='{' && collection.updateErrorExpression.trim().substr(-1,1)=='}')){
+			collection.updateErrorExpression='{' + collection.updateErrorExpression + '}'
+		}
+		try{
+			collection.updateErrorExpression=JSON.parse(collection.updateErrorExpression)
+		}catch(tryErr){	}
+	}
+
+
+	getSelectedDataFromCollection(dbModel,collection,data2,(err,docs)=>{
+		if(!err){
+			// var tempIndex=0
+
+			iteration(docs,(item,cb2)=>{
+				// tempLog(`item_${tempIndex}.json`,JSON.stringify(item,null,2))
+				// tempIndex++
+
+				util.renderFiles(programDoc.files,item,(err,renderedCode)=>{
+					if(!err){
+						var data={}
+						data=Object.assign({},data, programDoc.connector)
+						if(programDoc.connector.connectionType=='mssql' || programDoc.connector.connectionType=='mysql'){
+							data.query=renderedCode
+						}else{
+							data.content=renderedCode
+						}
+						
+						restServices.connector.request(`/${dbModel._id}/send`,{method:'POST', body:data},{},(err,data)=>{
+							if(err && collection.updateErrorExpression){
+								updateOneDocument(item,collection.updateErrorExpression,err,(err2)=>{
+									cb2(err,data)
+								})
+							}else if(!err && collection.updateExpression){
+								updateOneDocument(item,collection.updateExpression,null,(err2)=>{
+									cb2(err,data)
+								})
+							}else{
+								cb2(err,data)
+							}
+						})
+					}else{
+						if(collection.updateErrorExpression){
+							updateOneDocument(item,collection.updateErrorExpression,err,(err2)=>{
+								
+								cb2(err,data)
+							})
+						}else{
+							cb2(err)
+						}
+					}
+				})
+			},500,true,(err)=>{
+
+			})
+			cb(null,`${docs.length} adet görev çalıştırılmak üzere kuyruğa alındı`)
+		}else{
+			cb(err)
+		}
+	})
+}
+
 
 function collectionProcess(dbModel,programDoc,data,cb){
 	if(programDoc.collections.length==0)
@@ -307,98 +397,6 @@ function emailSender(dbModel,programDoc,data,cb){
 		}
 	})
 }
-
-function connectorExporter(dbModel,programDoc,data,cb){
-	if(programDoc.collections.length==0)
-		return cb({code:'WRONG_PARAMETER',message:'Collection secilmemis'})
-	if(programDoc.collections[0].name=='')
-		return cb({code:'WRONG_PARAMETER',message:'Collection secilmemis'})
-
-	var data2=dataDuzelt(data)
-
-	var collection=clone(programDoc.collections[0])
-
-	if((collection.filter || '').trim()!=''){
-		if(!(collection.filter.trim().substr(0,1)=='{' && collection.filter.trim().substr(-1,1)=='}')){
-			collection.filter='{' + collection.filter + '}'
-		}
-		try{
-			collection.filter=JSON.parse(collection.filter)
-		}catch(tryErr){	}
-	}
-
-	if((collection.updateExpression || '').trim()!=''){
-		if(!(collection.updateExpression.trim().substr(0,1)=='{' && collection.updateExpression.trim().substr(-1,1)=='}')){
-			collection.updateExpression='{' + collection.updateExpression + '}'
-		}
-		try{
-			collection.updateExpression=JSON.parse(collection.updateExpression)
-		}catch(tryErr){	}
-	}
-
-	if((collection.updateErrorExpression || '').trim()!=''){
-		if(!(collection.updateErrorExpression.trim().substr(0,1)=='{' && collection.updateErrorExpression.trim().substr(-1,1)=='}')){
-			collection.updateErrorExpression='{' + collection.updateErrorExpression + '}'
-		}
-		try{
-			collection.updateErrorExpression=JSON.parse(collection.updateErrorExpression)
-		}catch(tryErr){	}
-	}
-
-
-	getSelectedDataFromCollection(dbModel,collection,data2,(err,docs)=>{
-		if(!err){
-			// var tempIndex=0
-
-			iteration(docs,(item,cb2)=>{
-				// tempLog(`item_${tempIndex}.json`,JSON.stringify(item,null,2))
-				// tempIndex++
-
-				util.renderFiles(programDoc.files,item,(err,renderedCode)=>{
-					if(!err){
-						var data={}
-						data=Object.assign({},data, programDoc.connector)
-						if(programDoc.connector.connectionType=='mssql' || programDoc.connector.connectionType=='mysql'){
-							data.query=renderedCode
-						}else{
-							data.content=renderedCode
-						}
-						tempLog('data.query.txt',data.query)
-						restServices.connector.post(dbModel,`/send`,data,(err,data)=>{
-							if(err && collection.updateErrorExpression){
-								updateOneDocument(item,collection.updateErrorExpression,err,(err2)=>{
-									cb2(err,data)
-								})
-							}else if(!err && collection.updateExpression){
-								updateOneDocument(item,collection.updateExpression,null,(err2)=>{
-									cb2(err,data)
-								})
-							}else{
-								cb2(err,data)
-							}
-						})
-					}else{
-						if(collection.updateErrorExpression){
-							updateOneDocument(item,collection.updateErrorExpression,err,(err2)=>{
-								
-								cb2(err,data)
-							})
-						}else{
-							cb2(err)
-						}
-					}
-				})
-			},500,true,(err)=>{
-
-			})
-			cb(null,`${docs.length} adet görev çalıştırılmak üzere kuyruğa alındı`)
-		}else{
-			cb(err)
-		}
-	})
-}
-
-
 
 function getSelectedDataFromCollection(dbModel,collection,data,cb){
 	var idList=[]

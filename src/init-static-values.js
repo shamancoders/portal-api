@@ -21,7 +21,6 @@ module.exports = () => {
 		}
 	})
 	portalConstants.staticValues.modules=portalConstants.moduleList
-	// tempLog('list_modules.json',JSON.stringify(portalConstants.modules,null,2))
 }
 
 function getJSONPages(folder, suffix, expression) {
@@ -50,109 +49,6 @@ function getJSONPages(folder, suffix, expression) {
 	})
 	return moduleHolder
 }
-
-// function getInitializeData(cb) {
-// 	maxVersion = ''
-// 	getStaticValues((err, sabitDegerler) => {
-// 		if(!err) {
-// 			getJSONPageLoader(path.join(__root, 'resources/forms'), '.json', '', (err, holder) => {
-// 				if(dberr(err, next)) {
-// 					var data = {
-// 						version: maxVersion,
-// 						staticValues: sabitDegerler,
-// 						pages: holder,
-// 						// menu: mainMenu,
-// 					}
-
-// 					cb(null,data)
-// 				}
-// 			})
-// 		}else{
-// 			cb(err)
-// 		}
-// 	})
-// }
-
-// function getStaticValues(callback) {
-// 	var fileName = path.join(__root, 'resources/static-values.json')
-// 	var stValues = require(fileName)
-// 	var stats = fs.statSync(fileName)
-// 	var fileVer = (new Date(stats.mtime)).yyyymmddhhmmss().replaceAll('-', '').replaceAll(' ', '').replaceAll(':', '')
-// 	if(fileVer > maxVersion) {
-// 		maxVersion = fileVer
-// 	}
-
-// 	var portalModulesList = objectToListObject(require(path.join(__root, 'resources/portal-modules.json')))
-// 	Object.keys(portalModulesList).forEach((key) => {
-// 		if(typeof portalModulesList[key] == 'boolean') {
-// 			portalModulesList[key] = key
-// 		}
-// 	})
-// 	stValues['modules'] = portalModulesList
-// 	callback(null, stValues)
-// }
-
-// function getJSONPageLoader(folder, suffix, expression, callback) {
-// 	try {
-// 		var moduleHolder = {}
-// 		var files = fs.readdirSync(folder)
-
-// 		var index = 0
-
-// 		function calistir(cb) {
-// 			if(index >= files.length) {
-// 				return cb(null)
-// 			}
-// 			let f = path.join(folder, files[index])
-// 			var stats = fs.statSync(f)
-// 			var fileVer = (new Date(stats.mtime)).yyyymmddhhmmss().replaceAll('-', '').replaceAll(' ', '').replaceAll(':', '')
-// 			if(maxVersion == '') {
-// 				maxVersion = fileVer
-// 			} else if(fileVer > maxVersion) {
-// 				maxVersion = fileVer
-// 			}
-// 			if(!fs.statSync(f).isDirectory()) {
-
-// 				var fileName = path.basename(f)
-// 				var apiName = fileName.substr(0, fileName.length - suffix.length)
-// 				if(apiName != '' && (apiName + suffix) == fileName) {
-
-// 					moduleHolder[apiName] = require(f)
-// 					if(expression != '')
-// 						eventLog(`${expression} ${apiName.cyan} loaded.`)
-// 				}
-// 				index++
-// 				setTimeout(calistir, 0, cb)
-// 			} else {
-// 				var folderName = path.basename(f)
-// 				moduleHolder[folderName] = {}
-// 				getJSONPageLoader(f, suffix, expression, (err, holder) => {
-// 					if(!err) {
-// 						moduleHolder[folderName] = holder
-// 						index++
-// 						setTimeout(calistir, 0, cb)
-// 					} else {
-// 						cb(err)
-// 					}
-// 				})
-// 			}
-// 		}
-
-// 		calistir((err) => {
-// 			if(!err) {
-// 				callback(null, moduleHolder)
-// 			} else {
-// 				callback(err)
-// 			}
-
-// 		})
-
-
-// 	} catch (e) {
-// 		errorLog(`getJSONPageLoader Error:\r\nfolder:${folder}\r\nsuffix:${suffix}\r\nexpression:${expression}`)
-// 		callback(e)
-// 	}
-// }
 
 function repairMenu(menu) {
 	menu.forEach((m1, index1) => {
