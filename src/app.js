@@ -6,12 +6,11 @@ var bodyParser = require('body-parser')
 var logger = require('morgan')
 var favicon = require('serve-favicon')
 var methodOverride = require('method-override')
-
 //var indexRouter = require('./routes/index')
 var dbLoader = require('./db/db-loader')
 var httpServer=require('./lib/http-server.js')
 
-global.staticValues=require('./resources/static-values.json')
+global.staticValues=loadJSONFile('./resources/static-values.json')
 global.version='20210916'
 
 

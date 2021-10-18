@@ -9,12 +9,12 @@ global.portalConstants = {
 let maxVersion = ''
 
 module.exports = () => {
-	portalConstants.mainMenu = repairMenu(require(path.join(__root, 'resources', 'menu.json')))
+	portalConstants.mainMenu = repairMenu(loadJSONFile(path.join(__root, 'resources', 'menu.json')))
 	
-	portalConstants.staticValues = require('./resources/static-values.json')
+	portalConstants.staticValues = loadJSONFile('./resources/static-values.json')
 	portalConstants.pages = getJSONPages(path.join(__root, 'resources/forms'), '.json', '')
 	
-	portalConstants.moduleList=objectToListObject(require(path.join(__root, 'resources', 'portal-modules.json')))
+	portalConstants.moduleList=objectToListObject(loadJSONFile(path.join(__root, 'resources', 'portal-modules.json')))
 	Object.keys(portalConstants.moduleList).forEach((key)=>{
 		if(typeof portalConstants.moduleList[key]=='boolean'){
 			portalConstants.moduleList[key]=key
@@ -37,7 +37,13 @@ function getJSONPages(folder, suffix, expression) {
 			let fName = path.basename(fileName)
 			let apiName = fName.substr(0, fName.length - suffix.length)
 			if(apiName != '' && (apiName + suffix) == fName) {
-				moduleHolder[apiName] = require(fileName)
+
+				if(fileName.substr(-5)=='.json'){
+					moduleHolder[apiName] = loadJSONFile(fileName)
+				}else{
+					moduleHolder[apiName] = require(fileName)
+				}
+				
 				if(expression != '')
 					eventLog(`${expression} ${apiName.cyan} loaded.`)
 			}

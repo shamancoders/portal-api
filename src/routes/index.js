@@ -19,15 +19,14 @@ module.exports = (app) => {
 	masterControllers(app)
 	clientControllers(app)
 
-
 	// catch 404 and forward to error handler
 	app.use((req, res, next) => {
 		res.status(404).json({ success: false, error: { code: '404', message: 'function not found' } })
 	})
 
-	// app.use((err,req, res, next)=>{
-	// 	sendError(err,res)
-	// })
+	app.use((err,req, res, next)=>{
+		sendError(err,res)
+	})
 }
 
 function clientControllers(app) {
