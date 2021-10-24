@@ -56,6 +56,12 @@ function copy(dbModel, member, req, res, next, cb){
 						var newDoc = new dbModel.accounts(data)
 						if(!epValidateSync(newDoc,next))
 							return
+						newDoc.balanceAmount=0
+						newDoc.balanceQuantity=0
+						newDoc.balanceReports={}
+						newDoc.createdDate=new Date()
+						newDoc.modifiedDate=new Date()
+						
 						newDoc.save((err, newDoc2)=>{
 							if(dberr(err,next)){
 								var obj=newDoc2.toJSON()

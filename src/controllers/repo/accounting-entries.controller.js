@@ -82,13 +82,11 @@ function getList(dbModel, member, req, res, next, cb) {
 
 	var filter = {}
 
-	if((req.query.year || '') != '') {
+	if((req.query.year || '') != '')
 		filter['year'] = req.query.year
-	}
 
-	if((req.query.period || '') != '') {
+	if((req.query.period || '') != '')
 		filter['period'] = req.query.period
-	}
 
 	if((req.query.date1 || '') != '')
 		filter['documentDate'] = { $gte: req.query.date1 }
@@ -100,6 +98,13 @@ function getList(dbModel, member, req, res, next, cb) {
 			filter['documentDate'] = { $lte: req.query.date2 }
 		}
 	}
+
+	if((req.query.documentType || '') != '')
+		filter['documentType'] = req.query.documentType
+
+	if((req.query.paymentMethod || '') != '')
+		filter['paymentMethod'] = req.query.paymentMethod
+
 
 	// if((req.query.search || '').trim()!='')
 	// 	filter['name']={ '$regex': '.*' + req.query.search + '.*' ,'$options': 'i' }
@@ -146,11 +151,15 @@ function post(dbModel, member, req, res, next, cb) {
 	if(!epValidateSync(newDoc, next))
 		return
 
-	verileriKontrolEt(dbModel,member,newDoc, (err, newDoc) => {
+	verileriKontrolEt(dbModel, member, newDoc, (err, newDoc) => {
 		if(dberr(err, next)) {
 			newDoc.save((err, newDoc2) => {
 				if(dberr(err, next)) {
-					cb(newDoc2)
+					iteration(newDoc2.entryLine, (item, cb1) => {
+						hesapBakiyeleriGuncelle(dbModel, item.account, item.debit, item.credit, 0, 0, cb1)
+					}, 0, true, (err) => {
+						cb(newDoc2)
+					})
 				}
 			})
 		}
@@ -170,88 +179,126 @@ function put(dbModel, member, req, res, next, cb) {
 	dbModel.accounting_entries.findOne({ _id: data._id }, (err, doc) => {
 		if(dberr(err, next)) {
 			if(dbnull(doc, next)) {
+				let oldEntryLines = doc.entryLine || []
 				var doc2 = Object.assign(doc, data)
 				var newDoc = new dbModel.accounting_entries(doc2)
 				if(!epValidateSync(newDoc, next))
 					return
-
-				verileriKontrolEt(dbModel,member,newDoc, (err, newDoc) => {
+				verileriKontrolEt(dbModel, member, newDoc, (err, newDoc) => {
 					if(dberr(err, next)) {
-						newDoc.save((err, newDoc2) => {
-							if(dberr(err, next))
-								cb(newDoc2)
+						// console.log(`eskiler:`,oldEntryLines)
+						iteration(oldEntryLines, (oldLine, cb1) => {
+
+							hesapBakiyeleriGuncelle(dbModel, oldLine.account.toString(), -1 * oldLine.debit, -1 * oldLine.credit, 0, 0, cb1)
+						}, 0, true, (err) => {
+
+							newDoc.save((err, newDoc2) => {
+								if(dberr(err, next)) {
+									//console.log(`yeniler:`,newDoc2.entryLine)
+									iteration(newDoc2.entryLine, (newLine, cb1) => {
+										//console.log(`item:`,item)
+										hesapBakiyeleriGuncelle(dbModel, newLine.account.toString(), newLine.debit, newLine.credit, 0, 0, cb1)
+									}, 0, true, (err) => {
+										cb(newDoc2)
+									})
+								}
+							})
 						})
+
 					}
 				})
 			}
-
 		}
 	})
 
 }
 
-function verileriKontrolEt(dbModel,member,doc, cb) {
+function hesapBakiyeleriGuncelle(dbModel, accountId, debit, credit, quantityInput, quantityOutput, cb) {
+	dbModel.accounts.findOne({ _id: accountId }, (err, doc) => {
+		if(dberr(err, cb)) {
+			if(dbnull(doc, cb)) {
+				doc.debit += debit
+				doc.credit += credit
+				doc.balance = doc.debit - doc.credit
+				doc.quantityInput += quantityInput
+				doc.quantityOutput += quantityOutput
+				doc.quantityBalance = doc.quantityInput - doc.quantityOutput
+				doc.save((err, doc2) => {
+					if(dberr(err, cb)) {
+						if(doc.parentAccount) {
+							hesapBakiyeleriGuncelle(dbModel, doc.parentAccount.toString(), debit, credit, quantityInput, quantityOutput, cb)
+						} else {
+							cb(null)
+						}
+					}
+				})
+			}
+		}
+	})
+}
 
+function verileriKontrolEt(dbModel, member, doc, cb) {
 	try {
-		doc.entryLine=doc.entryLine || []
-		let hatalar='', hataNo=1
+		doc.entryLine = doc.entryLine || []
+		let hatalar = '',
+			hataNo = 1
 		if(doc.totalDebit != doc.totalCredit)
-			hatalar+=`Hata${hataNo++} Toplam borç ve alacak eşit değil.\n`
+			hatalar += `Hata${hataNo++} Toplam borç ve alacak eşit değil.\n`
 
-		let yil=Number(doc.year || 0)
-		let ay=Number(doc.period || -1)
-		let belgeYil=(new Date(doc.documentDate)).getFullYear()
-		let belgeAy=(new Date(doc.documentDate)).getMonth()+1
+		let yil = Number(doc.year || 0)
+		let ay = Number(doc.period || -1)
+		let belgeYil = (new Date(doc.documentDate)).getFullYear()
+		let belgeAy = (new Date(doc.documentDate)).getMonth() + 1
 
-		if(!(yil==belgeYil && ay==belgeAy))
-			hatalar+=`Hata${hataNo++} Belge tarihi dönem içinde değil.\n`
+		if(!(yil == belgeYil && ay == belgeAy))
+			hatalar += `Hata${hataNo++} Belge tarihi dönem içinde değil.\n`
 
-		let index=0
+		let index = 0
 
-		function calistir(cb1){
-			if(index>=doc.entryLine.length)
+		function calistir(cb1) {
+			if(index >= doc.entryLine.length)
 				return cb1()
-			let line=doc.entryLine[index]
-			if((line.account || '')==''){
-				hatalar+=`Hata${hataNo++} #${index+1}.Satırda hesap seçilmemiş.\n`
+			let line = doc.entryLine[index]
+			if((line.account || '') == '') {
+				hatalar += `Hata${hataNo++} #${index+1}.Satırda hesap seçilmemiş.\n`
 				index++
-				setTimeout(calistir,0,cb1)
+				setTimeout(calistir, 0, cb1)
 				return
 			}
 
-			dbModel.accounts.findOne({_id:line.account},(err,accDoc)=>{
-				if(!err){
-					if(accDoc==null){
-						hatalar+=`Hata${hataNo++} #${index+1}.Satır hesap bulunamadi veya silinmis\n`
+			dbModel.accounts.findOne({ _id: line.account }, (err, accDoc) => {
+				if(!err) {
+					if(accDoc == null) {
+						hatalar += `Hata${hataNo++} #${index+1}.Satır hesap bulunamadi veya silinmis\n`
 						index++
-						setTimeout(calistir,0,cb1)
-					}else{
-						if(accDoc.hasChilderen){
-							hatalar+=`Hata${hataNo++} #${index+1}.Satır '${accDoc.accountCode}-${accDoc.name}' hesabin alt hesaplari mevcut!\n`
+						setTimeout(calistir, 0, cb1)
+					} else {
+						if(accDoc.hasChilderen) {
+							hatalar += `Hata${hataNo++} #${index+1}.Satır '${accDoc.accountCode}-${accDoc.name}' hesabin alt hesaplari mevcut!\n`
 							index++
-							setTimeout(calistir,0,cb1)
-						}else{
+							setTimeout(calistir, 0, cb1)
+						} else {
 							index++
-							setTimeout(calistir,0,cb1)
+							setTimeout(calistir, 0, cb1)
 						}
 					}
-				}else{
-					hatalar+=`Hata${hataNo++} #${index+1}.Satır Error:${err.name} ${err.message}\n`
+				} else {
+					hatalar += `Hata${hataNo++} #${index+1}.Satır Error:${err.name} ${err.message}\n`
 					index++
-					setTimeout(calistir,0,cb1)
+					setTimeout(calistir, 0, cb1)
 				}
 			})
 
 		}
 
-		calistir(()=>{
-			if(hatalar==''){
+		calistir(() => {
+			if(hatalar == '') {
 				cb(null, doc)
-			}else{
-				cb({code:'SYNTAX_ERROR',message:hatalar})
+			} else {
+				cb({ code: 'SYNTAX_ERROR', message: hatalar })
 			}
 		})
-		
+
 	} catch (err) {
 		errorLog(err)
 		cb(err)
@@ -261,16 +308,16 @@ function verileriKontrolEt(dbModel,member,doc, cb) {
 
 
 function veriTemizle(data) {
-	if(data.entryLine==undefined) data.entryLine=[]
+	if(data.entryLine == undefined) data.entryLine = []
 
 	data.lineCountNumeric = data.entryLine.length
-	data.totalDebit =0
-	data.totalCredit =0
+	data.totalDebit = 0
+	data.totalCredit = 0
 	data.entryLine.forEach((e) => {
 		e.debit = Number(e.debit).round(2)
 		e.credit = Number(e.credit).round(2)
-		data.totalDebit +=e.debit
-		data.totalCredit +=e.credit
+		data.totalDebit += e.debit
+		data.totalCredit += e.credit
 	})
 	return data
 }
@@ -280,9 +327,19 @@ function deleteItem(dbModel, member, req, res, next, cb) {
 		return error.param1(req, next)
 	var data = req.body || {}
 	data._id = req.params.param1
-	dbModel.accounting_entries.removeOne(member, { _id: data._id }, (err, doc) => {
+	dbModel.accounting_entries.findOne({ _id: data._id }, (err, doc) => {
 		if(dberr(err, next)) {
-			cb(null)
+			if(dbnull(doc, next)) {
+				iteration(doc.entryLine, (oldLine, cb1) => {
+					hesapBakiyeleriGuncelle(dbModel, oldLine.account.toString(), -1 * oldLine.debit, -1 * oldLine.credit, 0, 0, cb1)
+				}, 0, true, (err) => {
+					dbModel.accounting_entries.removeOne(member, { _id: data._id }, (err, doc) => {
+						if(dberr(err, next)) {
+							cb(null)
+						}
+					})
+				})
+			}
 		}
 	})
 }
