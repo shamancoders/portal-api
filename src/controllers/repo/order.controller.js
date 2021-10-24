@@ -166,6 +166,7 @@ function post(dbModel, member, req, res, next, cb) {
 			if(eIntegratorDoc == null)
 				return next({ code: 'ENTEGRATOR', message: 'Entegrator bulanamadi.' })
 			documentHelper.yeniIrsaliyeNumarasi(dbModel, eIntegratorDoc, newDoc, (err, newDoc) => {
+				newDoc.lineCountNumeric={value:newDoc.orderLine.length}
 				newDoc.save((err, newDoc2) => {
 					if(dberr(err, next)) {
 
@@ -247,6 +248,7 @@ function put(dbModel, member, req, res, next, cb) {
 				var newDoc = new dbModel.orders(doc2)
 				if(!epValidateSync(newDoc, next))
 					return
+				newDoc.lineCountNumeric={value:newDoc.orderLine.length}
 				newDoc.save((err, newDoc2) => {
 					if(dberr(err, next)) {
 						cb(newDoc2)

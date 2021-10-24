@@ -214,6 +214,7 @@ function post(dbModel, member, req, res, next, cb){
 			if(eIntegratorDoc==null) 
 				return next({code: 'ENTEGRATOR', message: 'Entegrator bulanamadi.'})
 			documentHelper.yeniIrsaliyeNumarasi(dbModel,eIntegratorDoc,newDoc,(err,newDoc)=>{
+				newDoc.lineCountNumeric={value:newDoc.despatchLine.length}
 				newDoc.save((err, newDoc2)=>{
 					if(dberr(err,next)){
 
@@ -302,7 +303,9 @@ function put(dbModel, member, req, res, next, cb){
 				var newDoc = new dbModel.despatches(doc2)
 				if(!epValidateSync(newDoc,next))
 					return
-
+				console.log(`newDoc.despatchLine.length:`,newDoc.despatchLine.length)
+				newDoc.lineCountNumeric={value:newDoc.despatchLine.length}
+				console.log(`newDoc.lineCountNumeric:`,newDoc.lineCountNumeric)
 				newDoc.save((err, newDoc2)=>{
 					if(dberr(err,next)){
 						cb(newDoc2)
@@ -378,10 +381,7 @@ function fazlaliklariTemizleDuzelt(data){
 		}
 	}
 
-	data.lineCountNumeric={value:0}
-	if(data.despatchLine){
-		data.lineCountNumeric.value=data.despatchLine.length
-	}
+	
 	return data
 }
 
