@@ -60,6 +60,8 @@ function newSession(member, req, res, next, cb) {
 							sessionData.version = portalConstants.version
 							sessionData.staticValues = portalConstants.staticValues
 							sessionData.pages = portalConstants.pages
+							sessionData.widgets = portalConstants.widgets
+							sessionData.javascripts = portalConstants.javascripts
 							sessionData.databases = databases
 							sessionData.menu = []
 							sessionData.settings = []
@@ -115,6 +117,8 @@ function changeDb(member, req, res, next, cb) {
 						sessionData.version = portalConstants.version
 						sessionData.staticValues = portalConstants.staticValues
 						sessionData.pages = portalConstants.pages
+						sessionData.widgets = portalConstants.widgets
+						sessionData.javascripts = portalConstants.javascripts
 						sessionData.menu = menuMixOneDatabase(portalConstants.mainMenu, dbObj)
 						dbSettings(dbObj._id, next, (settings) => {
 							sessionData.settings = settings

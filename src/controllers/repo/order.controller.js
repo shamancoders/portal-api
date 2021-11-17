@@ -6,7 +6,9 @@ module.exports = (dbModel, member, req, res, next, cb) => {
 			break
 		case 'POST':
 			if(req.params.param1 == 'copy') {
-				copy(dbModel, member, req, res, next, cb)
+				return copy(dbModel, member, req, res, next, cb)
+			} else if(req.params.param1 == 'calc') {
+				return calc(dbModel, member, req, res, next, cb)
 			} else {
 				return postData()
 			}
@@ -80,6 +82,219 @@ module.exports = (dbModel, member, req, res, next, cb) => {
 
 }
 
+
+function calc(dbModel, member, req, res, next, cb) {
+	var data = req.body || {}
+	data._id = undefined
+	data = util.amountValueFixed2Digit(data, '')
+	data = dataDuzelt(data)
+	var newDoc = new dbModel.orders(data)
+
+
+	newDoc.buyerCustomerParty.party.partyIdentification[0].ID.value = newDoc.orderLine.length.toString()
+	newDoc = calculateOrder(newDoc)
+	cb(newDoc)
+
+}
+function amountType(){ return { value: 0, attr: { currencyID: 'TRY' } } }
+
+
+function compairTaxSubTotal(s, t) {
+	let source = {
+		percent: (s.percent || {}).value || 0,
+		taxScheme_taxTypeCode: ((s.taxCategory || {}).taxScheme.taxTypeCode || {}).value || '',
+		taxExemptionReasonCode: ((s.taxCategory || {}).taxExemptionReasonCode || {}).value || ''
+	}
+	let target = {
+		percent: (t.percent || {}).value || 0,
+		taxScheme_taxTypeCode: ((t.taxCategory || {}).taxScheme.taxTypeCode || {}).value || '',
+		taxExemptionReasonCode: ((t.taxCategory || {}).taxExemptionReasonCode || {}).value || ''
+	}
+	if(JSON.stringify(source) === JSON.stringify(target)){
+		console.log(`esit:`)
+		return true
+	}else{
+		console.log(`esit degil:`)
+		return false
+	}
+}
+
+function mergeTaxTotals(source,target, genelIndirimOran) {
+	// try {
+		if(source.taxAmount.value > 0) {
+			target.taxAmount.value += source.taxAmount.value * genelIndirimOran
+			source.taxSubtotal.forEach((h) => {
+				let bFound = false
+				target.taxSubtotal.forEach((k) => {
+					if(compairTaxSubTotal(h, k)) {
+						bFound = true
+						k.taxableAmount.value += h.taxableAmount.value * genelIndirimOran
+						k.taxAmount.value += h.taxAmount.value * genelIndirimOran
+						console.log(`bulundu target.taxSubtotal :\r\n`,target.taxSubtotal)
+					}
+				})
+				if(!bFound) {
+					let k=clone(h)
+					k.taxableAmount.value = h.taxableAmount.value * genelIndirimOran
+					k.taxAmount.value = h.taxAmount.value * genelIndirimOran
+					target.taxSubtotal.push(k)
+					console.log(`bulunmadi eklendi:target.taxSubtotal :\r\n`,target.taxSubtotal)
+				}
+
+			})
+		}
+	// } catch {}
+	//return target
+}
+
+function calculateOrder(doc) {
+
+	doc.documentCurrencyCode.value = doc.documentCurrencyCode.value || 'TRY'
+	
+	doc.lineCountNumeric = { value: doc.orderLine.length }
+
+	let line_taxTotal = { taxAmount: amountType(), taxSubtotal: [] }
+	let line_withholdingTaxTotal = { taxAmount: amountType(), taxSubtotal: [] }
+	let satirdaVergiVarMi = false
+	let genelIndirimOran = 1
+	doc.anticipatedMonetaryTotal.lineExtensionAmount = amountType()
+	doc.anticipatedMonetaryTotal.taxExclusiveAmount = amountType()
+	doc.anticipatedMonetaryTotal.taxInclusiveAmount = amountType()
+	doc.anticipatedMonetaryTotal.allowanceTotalAmount = amountType()
+	doc.anticipatedMonetaryTotal.chargeTotalAmount = amountType()
+	doc.anticipatedMonetaryTotal.payableRoundingAmount = amountType()
+	doc.anticipatedMonetaryTotal.payableAmount = amountType()
+	doc.anticipatedMonetaryTotal.payableAlternativeAmount = amountType()
+	if(doc.anticipatedMonetaryTotal.prepaidAmount)
+		doc.anticipatedMonetaryTotal.prepaidAmount.attr = { currencyID: doc.documentCurrencyCode.value }
+
+	if(doc.orderLine.length == 0) {
+		doc.taxTotal = { taxAmount: amountType(), taxSubtotal: [] }
+		doc.withholdingTaxTotal = null
+		doc.allowanceCharge = []
+		return doc
+	}
+	if((doc.allowanceCharge || []).length > 0) {
+		let satirToplam = 0
+		let genelArtiEksi = 0
+		doc.allowanceCharge.forEach((e) => {
+			if(e.chargeIndicator.value == false) {
+				genelArtiEksi -= e.amount.value
+				doc.anticipatedMonetaryTotal.allowanceTotalAmount.value += e.amount.value
+			} else {
+				genelArtiEksi += e.amount.value
+				doc.anticipatedMonetaryTotal.chargeTotalAmount.value += e.amount.value
+			}
+		})
+		doc.orderLine.forEach((line, index) => {
+			let satirIndirim = 0,
+				satirArtirim = 0
+			let tutar = line.orderedQuantity.value * line.price.priceAmount.value
+
+			(line.allowanceCharge || []).forEach((e) => {
+				if(e.chargeIndicator.value == false) {
+					satirIndirim += e.amount.value
+				} else {
+					satirArtirim += e.amount.value
+				}
+			})
+			if((tutar - satirIndirim + satirArtirim) >= 0) {
+				satirToplam += tutar - satirIndirim + satirArtirim
+			} else {
+				//burada hata var demek lazim
+			}
+		})
+		if(satirToplam > 0) {
+			genelIndirimOran = 1 + (genelArtiEksi / satirToplam)
+		}
+	}
+
+
+	doc.orderLine.forEach((line, index) => {
+
+		if(line.taxTotal) {
+			console.log(`index-${index}  line.taxTotal:`,line.taxTotal)
+			satirdaVergiVarMi = true
+			mergeTaxTotals(line.taxTotal,line_taxTotal, genelIndirimOran)
+		}
+		if(line.withholdingTaxTotal) {
+			satirdaVergiVarMi = true
+			mergeTaxTotals(line.withholdingTaxTotal,line_withholdingTaxTotal, genelIndirimOran)
+		}
+		let satirIndirim = 0
+		let satirArtirim = 0
+		
+		let miktar=Number(line.orderedQuantity.value)
+		let fiyat=Number(line.price.priceAmount.value)
+		let tutar = (miktar*fiyat).round(2)
+		
+
+		
+
+		line.allowanceCharge.forEach((e) => {
+			if(e.chargeIndicator.value == false) {
+				satirIndirim += e.amount.value
+			} else {
+				satirArtirim += e.amount.value
+			}
+		})
+
+		doc.anticipatedMonetaryTotal.allowanceTotalAmount.value += satirIndirim
+		doc.anticipatedMonetaryTotal.chargeTotalAmount.value += satirArtirim
+		line.lineExtensionAmount = {
+			value: (tutar - satirIndirim + satirArtirim).round(2),
+			attr: { currencyID: doc.documentCurrencyCode.value }
+		}
+		doc.anticipatedMonetaryTotal.lineExtensionAmount.value += tutar.round(2)
+		doc.anticipatedMonetaryTotal.taxExclusiveAmount.value += (line.lineExtensionAmount.value * genelIndirimOran).round(2)
+	})
+
+	doc.anticipatedMonetaryTotal.taxExclusiveAmount.value = doc.anticipatedMonetaryTotal.taxExclusiveAmount.value.round(2)
+
+
+	if(satirdaVergiVarMi) {
+		doc.taxTotal = clone(line_taxTotal)
+		if(line_withholdingTaxTotal.taxAmount.value > 0) {
+			doc.withholdingTaxTotal = clone(line_withholdingTaxTotal)
+		} else {
+			doc.withholdingTaxTotal = null
+		}
+	}
+
+	tempLog('calculateOrder_taxTotal.json', JSON.stringify(doc.taxTotal, null, 2))
+	let toplamVergi = 0,
+		tevkifEdilen = 0
+
+	if(doc.taxTotal) {
+		try {
+			doc.taxTotal.taxAmount.value = doc.taxTotal.taxAmount.value.round(2)
+			toplamVergi = doc.taxTotal.taxAmount.value
+		} catch {}
+
+		(doc.taxTotal.taxSubTotal || []).forEach((e) => {
+			try { e.taxableAmount.value = e.taxableAmount.value.round(2) } catch {}
+			try { e.taxAmount.value = e.taxAmount.value.round(2) } catch {}
+		})
+	}
+	if(doc.withholdingTaxTotal) {
+		try {
+			doc.withholdingTaxTotal.taxAmount.value = doc.taxTotal.taxAmount.value.round(2)
+			tevkifEdilen = doc.withholdingTaxTotal.taxAmount.value
+		} catch {}
+
+		(doc.withholdingTaxTotal.taxSubTotal || []).forEach((e) => {
+			try { e.taxableAmount.value = e.taxableAmount.value.round(2) } catch {}
+			try { e.taxAmount.value = e.taxAmount.value.round(2) } catch {}
+		})
+	}
+
+	doc.anticipatedMonetaryTotal.taxInclusiveAmount.value = doc.anticipatedMonetaryTotal.taxExclusiveAmount.value + toplamVergi
+
+	doc.anticipatedMonetaryTotal.payableAmount.value = doc.anticipatedMonetaryTotal.taxInclusiveAmount.value - tevkifEdilen
+
+	return doc
+}
+
 function print(dbModel, member, req, res, next, cb) {
 	var id = req.params.param2 || req.body['id'] || req.query.id || ''
 	if(id == '')
@@ -128,6 +343,8 @@ function copy(dbModel, member, req, res, next, cb) {
 				newDoc.orderErrors = []
 				newDoc.localErrors = []
 				newDoc.uuid.value = uuid.v4()
+				newDoc.issueDate.value = (new Date()).yyyymmdd()
+				newDoc.issueTime.value = (new Date()).hhmmss()
 
 				dbModel.integrators.findOne({ _id: newDoc.eIntegrator }, (err, eIntegratorDoc) => {
 					if(dberr(err, next)) {
@@ -154,7 +371,7 @@ function post(dbModel, member, req, res, next, cb) {
 	var data = req.body || {}
 	data._id = undefined
 	data = util.amountValueFixed2Digit(data, '')
-	data = fazlaliklariTemizleDuzelt(data)
+	data = dataDuzelt(data)
 	var newDoc = new dbModel.orders(data)
 	if(!epValidateSync(newDoc, next))
 		return
@@ -165,8 +382,8 @@ function post(dbModel, member, req, res, next, cb) {
 		if(dberr(err, next)) {
 			if(eIntegratorDoc == null)
 				return next({ code: 'ENTEGRATOR', message: 'Entegrator bulanamadi.' })
-			documentHelper.yeniIrsaliyeNumarasi(dbModel, eIntegratorDoc, newDoc, (err, newDoc) => {
-				newDoc.lineCountNumeric={value:newDoc.orderLine.length}
+			documentHelper.yeniSiparisNumarasi(dbModel, eIntegratorDoc, newDoc, (err, newDoc) => {
+				newDoc.lineCountNumeric = { value: newDoc.orderLine.length }
 				newDoc.save((err, newDoc2) => {
 					if(dberr(err, next)) {
 
@@ -237,19 +454,27 @@ function put(dbModel, member, req, res, next, cb) {
 
 	var data = req.body || {}
 	data._id = req.params.param1
-	data.modifiedDate = new Date()
+
+
 	data = util.amountValueFixed2Digit(data, '')
-	data = fazlaliklariTemizleDuzelt(data)
+	data = dataDuzelt(data)
 	dbModel.orders.findOne({ _id: data._id }, (err, doc) => {
 		if(dberr(err, next)) {
 			if(dbnull(doc, next)) {
 				data = util.amountValueFixed2Digit(data, '')
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.orders(doc2)
-				if(!epValidateSync(newDoc, next))
+				doc = Object.assign(doc, data)
+				if(doc.withholdingTaxTotal==undefined || doc.withholdingTaxTotal==[]){
+					doc.withholdingTaxTotal=null
+				}
+			
+				if(!epValidateSync(doc, next))
 					return
-				newDoc.lineCountNumeric={value:newDoc.orderLine.length}
-				newDoc.save((err, newDoc2) => {
+
+				doc.lineCountNumeric = { value: doc.orderLine.length }
+				doc.modifiedDate = new Date()
+				doc=calculateOrder(doc)
+
+				doc.save((err, newDoc2) => {
 					if(dberr(err, next)) {
 						cb(newDoc2)
 					}
@@ -259,36 +484,19 @@ function put(dbModel, member, req, res, next, cb) {
 	})
 }
 
-function fazlaliklariTemizleDuzelt(data) {
-	if((data.location || '') == '')
-		data.location = undefined
-	if((data.location2 || '') == '')
-		data.location2 = undefined
-	if((data.subLocation || '') == '')
-		data.subLocation = undefined
-	if((data.subLocation2 || '') == '')
-		data.subLocation2 = undefined
-	if((data.receiptAdvice || '') == '')
-		data.receiptAdvice = undefined
 
+function dataDuzelt(data) {
 	if(data.orderLine) {
-		data.orderLine.forEach((e) => {
-			if(e.item)
+		data.orderLine.forEach((e, index) => {
+			if(e.item) {
 				if((e.item._id || '') == '')
 					e.item._id = undefined
+			}
+			e.ID = { value: (index + 1).toString() }
 		})
 	}
 
-	if((data.buyerCustomerParty || '') != '' && (data.buyerCustomerParty || '') == '') {
-		data['buyerCustomerParty'] = clone(data.buyerCustomerParty)
-	} else if((data.buyerCustomerParty || '') == '' && (data.buyerCustomerParty || '') != '') {
-		data['buyerCustomerParty'] = clone(data.buyerCustomerParty)
-	}
-	if((data.sellerSupplierParty || '') != '' && (data.sellerSupplierParty || '') == '') {
-		data['sellerSupplierParty'] = clone(data.sellerSupplierParty)
-	} else if((data.sellerSupplierParty || '') == '' && (data.sellerSupplierParty || '') != '') {
-		data['sellerSupplierParty'] = clone(data.sellerSupplierParty)
-	}
+
 	return data
 }
 
