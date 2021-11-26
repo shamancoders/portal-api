@@ -9,10 +9,11 @@ global.portalConstants = {
 }
 let maxVersion = ''
 
-module.exports = () => {
+module.exports = ()=>{
 	portalConstants.mainMenu = repairMenu(loadJSONFile(path.join(__root, 'resources', 'menu.json')))
 	
-	portalConstants.staticValues = loadJSONFile('./resources/static-values.json')
+	portalConstants.staticValues = loadJSONFile(path.join(__root,'/resources/static-values.json'))
+	
 	portalConstants.pages = getJSONPages(path.join(__root, 'resources/forms'), '.json', 'page')
 	portalConstants.widgets = getJSONPages(path.join(__root, 'resources/widgets'), '.json', 'widget')
 	portalConstants.javascripts = getJSFiles(path.join(__root, 'resources/javascripts'), '.js', 'js file')

@@ -10,7 +10,7 @@ var methodOverride = require('method-override')
 var dbLoader = require('./db/db-loader')
 var httpServer=require('./lib/http-server.js')
 
-global.staticValues=loadJSONFile('./resources/static-values.json')
+global.staticValues=loadJSONFile(path.join(__root,'/resources/static-values.json'))
 global.version='20210916'
 
 
