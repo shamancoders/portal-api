@@ -27,6 +27,7 @@ module.exports = () => {
 	console.log(`portalConstants.javascripts :`,portalConstants.javascripts )
 }
 
+
 function getJSONPages(folder, suffix, expression) {
 	var moduleHolder = {}
 	var files = fs.readdirSync(folder)
