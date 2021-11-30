@@ -88,20 +88,19 @@ function clientControllers(app) {
 
 function masterControllers(app) {
 	app.all('/api', function(req, res) {
-		res.status(200).json({ success: true, data: `Welcome to Gany.master API V1. Last modified:${appJsModifiedDate}. Your path:/api ,Please use: /api/v1[/:dbId]/:func/[:param1]/[:param2]/[:param3] . Methods: GET, POST, PUT, DELETE` })
+		res.status(200).json({ success: true, data:`Welcome to Gany.master API V1. Last modified:${appJsModifiedDate}. Your path:/api ,Please use: /api/v1[/:dbId]/:func/[:param1]/[:param2]/[:param3] . Methods: GET, POST, PUT, DELETE` , status:config.status})
 	})
 
 	app.all('/api/v1', function(req, res) {
-		res.status(200).json({ success: true, data: `Welcome to GanyGo.master API V1. Last modified:${appJsModifiedDate}. Your path:/api/v1 ,Please use: /api/v1[/:dbId]/:func/[:param1]/[:param2]/[:param3] . Methods: GET, POST, PUT, DELETE` })
+		res.status(200).json({ success: true, data: `Welcome to GanyGo.master API V1. Last modified:${appJsModifiedDate}. Your path:/api/v1 ,Please use: /api/v1[/:dbId]/:func/[:param1]/[:param2]/[:param3] . Methods: GET, POST, PUT, DELETE`, status:config.status })
 	})
 
 	app.all('/api/v1/web', function(req, res, next) {
-		res.status(200).json({ success: true, data: `Welcome to GanyGo.web API V1. Last modified:${appJsModifiedDate}. Your path:/api/v1 ,Please use: /api/v1/web[/:dbId]/:func/[:param1]/[:param2]/[:param3] . Methods: GET, POST, PUT, DELETE` })
+		res.status(200).json({ success: true, data: `Welcome to GanyGo.web API V1. Last modified:${appJsModifiedDate}. Your path:/api/v1 ,Please use: /api/v1/web[/:dbId]/:func/[:param1]/[:param2]/[:param3] . Methods: GET, POST, PUT, DELETE`, status:config.status })
 	})
 
 	setRoutes(app, '/api/v1/web/:func/:param1/:param2/:param3', setWebAPIFunctions)
 	setRoutes(app, '/api/v1/:func/:param1/:param2/:param3', setAPIFunctions)
-
 
 	function setAPIFunctions(req, res, next) {
 		let ctl = getController(req.params.func)

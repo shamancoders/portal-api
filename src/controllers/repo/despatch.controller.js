@@ -282,15 +282,11 @@ function getErrors(dbModel, member, req, res, next, cb){
 }
 
 function put(dbModel, member, req, res, next, cb){
-	if(req.params.param1==undefined)
+	if(req.params.param1 == undefined)
 		return error.param1(req, next)
 
 	var data = req.body || {}
-	if((req.params.param1=='inbox' || req.params.param1=='outbox') && req.params.param2!=undefined){
-		data._id = req.params.param2
-	}else{
-		data._id = req.params.param1
-	}
+	data._id = req.params.param1
 	
 	data.modifiedDate = new Date()
 	data=util.amountValueFixed2Digit(data,'')
@@ -299,15 +295,18 @@ function put(dbModel, member, req, res, next, cb){
 	dbModel.despatches.findOne({ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				data=util.amountValueFixed2Digit(data,'')
-				var doc2 = Object.assign(doc, data)
-				
+				data = util.amountValueFixed2Digit(data, '')
+				console.log(`doc.despatchLine.length once:`,doc.despatchLine.length)
+
+				var doc2  = Object.assign(doc, data)
 				var newDoc = new dbModel.despatches(doc2)
-				if(!epValidateSync(newDoc,next))
+				
+				if(!epValidateSync(newDoc, next))
 					return
-				console.log(`newDoc.despatchLine.length:`,newDoc.despatchLine.length)
-				newDoc.lineCountNumeric={value:newDoc.despatchLine.length}
-				console.log(`newDoc.lineCountNumeric:`,newDoc.lineCountNumeric)
+				console.log(`newDoc.despatchLine.length sonra:`,newDoc.despatchLine.length)
+
+				newDoc.lineCountNumeric = { value: newDoc.despatchLine.length }
+				newDoc.modifiedDate = new Date()
 				newDoc.save((err, newDoc2)=>{
 					if(dberr(err,next)){
 						cb(newDoc2)
@@ -317,6 +316,7 @@ function put(dbModel, member, req, res, next, cb){
 		}
 	})
 }
+
 
 function fazlaliklariTemizleDuzelt(data){
 	if((data.location || '')=='')
@@ -377,6 +377,9 @@ function fazlaliklariTemizleDuzelt(data){
 		}
 	}
 
+	if(data.issueTime==undefined){
+		data.issueTime={value:(new Date()).hhmmss()}
+	}
 	if(data.issueTime.value.length<8){
 		if(data.issueTime.value.length==5){
 			data.issueTime.value+=':00'
