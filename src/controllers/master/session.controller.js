@@ -39,6 +39,7 @@ function newSession(member, req, res, next, cb) {
 					lastLoginDbId = sonGiris[0].dbId
 
 				myDbDefines(member, req, res, next, (databases) => {
+					let dbObj = null
 					if(lastLoginDbId != '') {
 						databases.forEach((e) => {
 							if(e._id == lastLoginDbId) {
@@ -72,7 +73,7 @@ function newSession(member, req, res, next, cb) {
 									sessionData.settings = settings
 									cb(sessionData)
 								})
-							}else{
+							} else {
 								cb(sessionData)
 							}
 
@@ -240,7 +241,7 @@ function menuMixOneDatabase(menu, database) {
 	var menu1 = clone(menu)
 	var menu2 = []
 	menu1.forEach((e) => {
-		e = menuModule(e, database.owner.modules)
+		e = menuModule(e, (database.owner || {}).modules)
 		if(e != undefined) {
 			menu2.push(clone(e))
 		}
@@ -303,30 +304,30 @@ function menuModule(menu, modules) {
 
 function myDbDefines(member, req, res, next, cb) {
 	db.dbdefines.find({ deleted: false, passive: false, $or: [{ owner: member._id }, { 'authorizedMembers.memberId': member._id }] }).populate('owner', '_id username name lastName modules').exec((err, docs) => {
-		if (!err) {
+		if(!err) {
 			let data = []
 			docs.forEach((e) => {
 				let auth = { owner: false, canRead: false, canWrite: false, canDelete: false }
-				let isMine=false
-				if (e.owner._id.toString() == member._id.toString()) {
+				let isMine = false
+				if(((e.owner || {})._id || {}).toString() == member._id.toString()) {
 					auth.owner = true
 					auth.canRead = true
 					auth.canWrite = true
 					auth.canDelete = true
-					isMine=true
+					isMine = true
 				} else {
 					e.authorizedMembers.forEach((e2) => {
-						if (e2.memberId.toString() == member._id.toString()) {
+						if(e2.memberId.toString() == member._id.toString()) {
 							auth.canRead = e2.canRead
 							auth.canWrite = e2.canWrite
 							auth.canDelete = e2.canDelete
 							return
 						}
 					})
-					isMine=false
+					isMine = false
 				}
-				if (auth.canRead) {
-					data.push({ _id: e._id, dbName: e.dbName,isMine:isMine,  owner: e.owner, auth: auth })
+				if(auth.canRead) {
+					data.push({ _id: e._id, dbName: e.dbName, isMine: isMine, owner: e.owner, auth: auth })
 				}
 			})
 			cb(data)

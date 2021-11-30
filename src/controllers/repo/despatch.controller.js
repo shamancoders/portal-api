@@ -52,7 +52,9 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 			case 'view':
 			case 'xslt':
 			case 'xml':
+			console.log(`despatch xml get:`)
 			restServices.eDespatch.getFile(dbModel,`/${req.params.param1}/${req.params.param2}`,{},(err,data)=>{
+				console.log(`data:`,data)
 				if(dberr(err,next)){
 					cb({file:{fileName:req.params.param2,data:data}})
 				}

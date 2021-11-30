@@ -25,7 +25,6 @@ module.exports = ()=>{
 	})
 
 	portalConstants.staticValues.modules=portalConstants.moduleList
-	console.log(`portalConstants.javascripts :`,portalConstants.javascripts )
 }
 
 
@@ -50,8 +49,8 @@ function getJSONPages(folder, suffix, expression) {
 					moduleHolder[apiName] = require(fileName)
 				}
 				
-				if(expression != '')
-					eventLog(`${expression} ${apiName.cyan} loaded.`)
+				// if(expression != '')
+				// 	eventLog(`${expression} ${apiName.cyan} loaded.`)
 			}
 
 		} else {

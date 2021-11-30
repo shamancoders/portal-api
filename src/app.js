@@ -11,6 +11,7 @@ var dbLoader = require('./db/db-loader')
 var httpServer=require('./lib/http-server.js')
 
 global.staticValues=loadJSONFile(path.join(__root,'/resources/static-values.json'))
+global.portalModules=loadJSONFile(path.join(__root,'/resources/portal-modules.json'))
 global.version='20210916'
 
 
