@@ -142,11 +142,11 @@ function put(dbModel, member, req, res, next, cb) {
 			if(dbnull(doc, next)) {
 				data = cleanDataEmptyLocalConnector(data)
 				saveFiles(dbModel, data, (err, data) => {
-					var doc2 = Object.assign(doc, data)
-					var newDoc = new dbModel.integrators(doc2)
-					if(!epValidateSync(newDoc, next))
+					Object.assign(doc, data)
+					
+					if(!epValidateSync(doc, next))
 						return
-					newDoc.save((err, newDoc2) => {
+					doc.save((err, newDoc2) => {
 						if(dberr(err, next)) {
 							if(newDoc2.isDefault) {
 								dbModel.integrators.updateMany({ isDefault: true, _id: { $ne: newDoc2._id } }, { $set: { isDefault: false } }, { multi: true }, (err, resp) => {
@@ -161,7 +161,6 @@ function put(dbModel, member, req, res, next, cb) {
 			}
 		}
 	})
-
 }
 
 function saveFiles(dbModel, data, cb) {

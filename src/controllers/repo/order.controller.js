@@ -384,6 +384,7 @@ function post(dbModel, member, req, res, next, cb) {
 				return next({ code: 'ENTEGRATOR', message: 'Entegrator bulanamadi.' })
 			documentHelper.yeniSiparisNumarasi(dbModel, eIntegratorDoc, newDoc, (err, newDoc) => {
 				newDoc.lineCountNumeric = { value: newDoc.orderLine.length }
+				newDoc=calculateOrder(newDoc)
 				newDoc.save((err, newDoc2) => {
 					if(dberr(err, next)) {
 
@@ -394,6 +395,45 @@ function post(dbModel, member, req, res, next, cb) {
 		}
 	})
 }
+
+
+function put(dbModel, member, req, res, next, cb) {
+	if(req.params.param1 == undefined)
+		return error.param1(req, next)
+
+	var data = req.body || {}
+	data._id = req.params.param1
+
+
+	data = util.amountValueFixed2Digit(data, '')
+	data = dataDuzelt(data)
+	dbModel.orders.findOne({ _id: data._id }, (err, doc) => {
+		if(dberr(err, next)) {
+			if(dbnull(doc, next)) {
+				data = util.amountValueFixed2Digit(data, '')
+				doc = Object.assign(doc, data)
+				if(doc.withholdingTaxTotal==undefined || doc.withholdingTaxTotal==[]){
+					doc.withholdingTaxTotal=null
+				}
+			
+				if(!epValidateSync(doc, next))
+					return
+
+				doc.lineCountNumeric = { value: doc.orderLine.length }
+				doc.modifiedDate = new Date()
+				doc=calculateOrder(doc)
+
+				doc.save((err, newDoc2) => {
+					if(dberr(err, next)) {
+						cb(newDoc2)
+					}
+				})
+			}
+		}
+	})
+}
+
+
 
 
 function importOutbox(dbModel, member, req, res, next, cb) {
@@ -448,43 +488,6 @@ function getErrors(dbModel, member, req, res, next, cb) {
 	})
 }
 
-function put(dbModel, member, req, res, next, cb) {
-	if(req.params.param1 == undefined)
-		return error.param1(req, next)
-
-	var data = req.body || {}
-	data._id = req.params.param1
-
-
-	data = util.amountValueFixed2Digit(data, '')
-	data = dataDuzelt(data)
-	dbModel.orders.findOne({ _id: data._id }, (err, doc) => {
-		if(dberr(err, next)) {
-			if(dbnull(doc, next)) {
-				data = util.amountValueFixed2Digit(data, '')
-				doc = Object.assign(doc, data)
-				if(doc.withholdingTaxTotal==undefined || doc.withholdingTaxTotal==[]){
-					doc.withholdingTaxTotal=null
-				}
-			
-				if(!epValidateSync(doc, next))
-					return
-
-				doc.lineCountNumeric = { value: doc.orderLine.length }
-				doc.modifiedDate = new Date()
-				doc=calculateOrder(doc)
-
-				doc.save((err, newDoc2) => {
-					if(dberr(err, next)) {
-						cb(newDoc2)
-					}
-				})
-			}
-		}
-	})
-}
-
-
 function dataDuzelt(data) {
 	if(data.orderLine) {
 		data.orderLine.forEach((e, index) => {
@@ -507,7 +510,7 @@ function getOrderList(ioType, dbModel, member, req, res, next, cb) {
 		populate: [
 			{ path: 'eIntegrator', select: '_id eIntegrator name username' }
 		],
-		select: '_id ioType eIntegrator profileId ID uuid issueDate issueTime orderTypeCode lineCountNumeric orderLine localDocumentId buyerCustomerParty sellerSupplierParty orderStatus orderErrors localStatus localErrors',
+		select: '_id ioType eIntegrator profileId ID uuid issueDate issueTime orderTypeCode lineCountNumeric orderLine localDocumentId buyerCustomerParty sellerSupplierParty orderStatus orderErrors localStatus localErrors anticipatedMonetaryTotal documentCurrencyCode',
 		sort: { 'issueDate.value': 'desc', 'ID.value': 'desc' }
 	}
 
@@ -608,6 +611,8 @@ function listeDuzenle(dbModel, e, cb) {
 		})
 	}
 
+	obj['anticipatedMonetaryTotal'] = e['anticipatedMonetaryTotal']
+	obj['documentCurrencyCode'] = e['documentCurrencyCode']
 	obj['lineCountNumeric'] = e['lineCountNumeric'].value
 	obj['localDocumentId'] = e['localDocumentId']
 	obj['orderStatus'] = e['orderStatus']

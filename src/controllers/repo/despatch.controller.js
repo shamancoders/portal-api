@@ -52,9 +52,7 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 			case 'view':
 			case 'xslt':
 			case 'xml':
-			console.log(`despatch xml get:`)
 			restServices.eDespatch.getFile(dbModel,`/${req.params.param1}/${req.params.param2}`,{},(err,data)=>{
-				console.log(`data:`,data)
 				if(dberr(err,next)){
 					cb({file:{fileName:req.params.param2,data:data}})
 				}
@@ -120,14 +118,14 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 
 
 function print(dbModel, member, req, res, next, cb){
-	var id=req.params.param2 || req.body['id'] || req.query.id || ''
+	let id=req.params.param2 || req.body['id'] || req.query.id || ''
 	if(id=='')
 		return error.param2(req,next)
 	dbModel.despatches.findOne({ _id: id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
 				if(doc.ioType==0){
-					var module=doc.ioType==0?'despatch.outbox':'despatch.inbox'
+					let module=doc.ioType==0?'despatch.outbox':'despatch.inbox'
 						printHelper.print(dbModel,module,doc,(req.query.designId || ''),(err,renderedCode)=>{
 							if(!err){
 								cb(renderedCode)
@@ -149,15 +147,15 @@ function print(dbModel, member, req, res, next, cb){
 }
 
 function copy(dbModel, member, req, res, next, cb){
-	var id=req.params.param2|| req.body['id'] || req.query.id || ''
-	var newName=req.body['newName'] || req.body['name'] || ''
+	let id=req.params.param2|| req.body['id'] || req.query.id || ''
+	let newName=req.body['newName'] || req.body['name'] || ''
 	if(id=='')
 		return error.param2(req,next)
 
 	dbModel.despatches.findOne({ _id: id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var data=doc.toJSON()
+				let data=doc.toJSON()
 				data._id=undefined
 				delete data._id
 				if(newName.length==16){
@@ -166,7 +164,7 @@ function copy(dbModel, member, req, res, next, cb){
 					data.ID.value=''
 				}
 
-				var newDoc = new dbModel.despatches(data)
+				let newDoc = new dbModel.despatches(data)
 				if(!epValidateSync(newDoc,next))
 					return
 				newDoc.createdDate=new Date()
@@ -185,7 +183,7 @@ function copy(dbModel, member, req, res, next, cb){
 						documentHelper.yeniIrsaliyeNumarasi(dbModel,eIntegratorDoc,newDoc,(err,newDoc2)=>{
 							newDoc2.save((err, newDoc3)=>{
 								if(dberr(err,next)){
-									var obj=newDoc3.toJSON()
+									let obj=newDoc3.toJSON()
 									obj['newName']=obj.ID.value
 									cb(obj)
 								} 
@@ -201,11 +199,11 @@ function copy(dbModel, member, req, res, next, cb){
 
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 	data=util.amountValueFixed2Digit(data,'')
 	data=fazlaliklariTemizleDuzelt(data)
-	var newDoc = new dbModel.despatches(data)
+	let newDoc = new dbModel.despatches(data)
 	if(!epValidateSync(newDoc,next))
 		return
 
@@ -230,7 +228,7 @@ function post(dbModel, member, req, res, next, cb){
 
 
 function importOutbox(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	
 	if(!data.files)
 		return next({code: 'WRONG_PARAMETER', message: 'files elemani bulunamadi'})
@@ -266,15 +264,15 @@ function importOutbox(dbModel, member, req, res, next, cb){
 }
 
 function getErrors(dbModel, member, req, res, next, cb){
-	var _id= req.params.param2 || req.query._id || ''
-	var select='_id profileId ID despatchTypeCode localDocumentId issueDate ioType eIntegrator despatchErrors localErrors despatchStatus localStatus'
+	let _id= req.params.param2 || req.query._id || ''
+	let select='_id profileId ID despatchTypeCode localDocumentId issueDate ioType eIntegrator despatchErrors localErrors despatchStatus localStatus'
 
 	if(_id=='') 
 		return error.param2(req,next)
 	dbModel.despatches.findOne({_id:_id},select).exec((err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var data=doc.toJSON()
+				let data=doc.toJSON()
 				cb(data)
 			}
 		}
@@ -285,29 +283,22 @@ function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1 == undefined)
 		return error.param1(req, next)
 
-	var data = req.body || {}
-	data._id = req.params.param1
+	let data = req.body || {}
+	// data._id = req.params.param1
 	
 	data.modifiedDate = new Date()
 	data=util.amountValueFixed2Digit(data,'')
 	data=fazlaliklariTemizleDuzelt(data)
-
-	dbModel.despatches.findOne({ _id: data._id},(err,doc)=>{
+	dbModel.despatches.findOne({ _id:req.params.param1},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				data = util.amountValueFixed2Digit(data, '')
-				console.log(`doc.despatchLine.length once:`,doc.despatchLine.length)
-
-				var doc2  = Object.assign(doc, data)
-				var newDoc = new dbModel.despatches(doc2)
-				
-				if(!epValidateSync(newDoc, next))
+				Object.assign(doc, data)
+				if(!epValidateSync(doc, next))
 					return
-				console.log(`newDoc.despatchLine.length sonra:`,newDoc.despatchLine.length)
 
-				newDoc.lineCountNumeric = { value: newDoc.despatchLine.length }
-				newDoc.modifiedDate = new Date()
-				newDoc.save((err, newDoc2)=>{
+				doc.lineCountNumeric = { value: doc.despatchLine.length }
+				doc.modifiedDate = new Date()
+				doc.save((err, newDoc2)=>{
 					if(dberr(err,next)){
 						cb(newDoc2)
 					}
@@ -320,13 +311,10 @@ function put(dbModel, member, req, res, next, cb){
 
 function fazlaliklariTemizleDuzelt(data){
 	if((data.location || '')=='')
-		data.location=undefined
+		data.location=null
 	if((data.location2 || '')=='')
-		data.location2=undefined
-	if((data.subLocation || '')=='') 
-		data.subLocation=undefined
-	if((data.subLocation2 || '')=='') 
-		data.subLocation2=undefined
+		data.location2=null
+
 	if((data.receiptAdvice || '')=='')
 		data.receiptAdvice=undefined
 
@@ -334,7 +322,7 @@ function fazlaliklariTemizleDuzelt(data){
 		data.despatchLine.forEach((e)=>{
 			if(e.item)
 				if((e.item._id || '')=='')
-					e.item._id=undefined
+					e.item._id=null
 			})
 	}
 
@@ -377,7 +365,7 @@ function fazlaliklariTemizleDuzelt(data){
 		}
 	}
 
-	if(data.issueTime==undefined){
+	if(data.issueTime==undefined || data.issueTime==null){
 		data.issueTime={value:(new Date()).hhmmss()}
 	}
 	if(data.issueTime.value.length<8){
@@ -391,7 +379,7 @@ function fazlaliklariTemizleDuzelt(data){
 }
 
 function getDespatchList(ioType, dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1), 
+	let options={page: (req.query.page || 1), 
 		populate:[
 		{path:'eIntegrator',select:'_id eIntegrator name username' }
 		],
@@ -404,7 +392,7 @@ function getDespatchList(ioType, dbModel, member, req, res, next, cb){
 		options['limit']=req.query.pageSize || req.query.limit
 
 	// var filter = {}
-	var filter = {ioType:ioType}
+	let filter = {ioType:ioType}
 
 	if(req.query.eIntegrator)
 		filter['eIntegrator']=req.query.eIntegrator
@@ -438,15 +426,9 @@ function getDespatchList(ioType, dbModel, member, req, res, next, cb){
 		}
 	}
 
-	// var b=dbModel.integrators
-	// //dbModel.conn.models['integrators']=dbModel.integrators
-	// var a=dbModel.despatches
-	// Object.keys(dbModel.conn.models).forEach((key)=>{
-	// 	console.log(`despatch controller:`,key)
-	// })
 	dbModel.despatches.paginate(filter,options,(err, resp)=>{
 		if(dberr(err,next)){
-			var liste=[]
+			let liste=[]
 			iteration(resp.docs,(item,cb1)=>{
 				listeDuzenle(dbModel,item,(err,obj)=>{
 					liste.push(obj)
@@ -466,7 +448,7 @@ function getDespatchList(ioType, dbModel, member, req, res, next, cb){
 }
 
 function listeDuzenle(dbModel,e,cb){
-	var obj={}
+	let obj={}
 	obj['_id']=e['_id']
 	obj['eIntegrator']=e['eIntegrator']
 	obj['ioType']=e['ioType']
@@ -481,7 +463,7 @@ function listeDuzenle(dbModel,e,cb){
 	if(e.ioType==0){
 		obj['party']['title']=e.deliveryCustomerParty.party.partyName.name.value || (e.deliveryCustomerParty.party.person.firstName.value + ' ' + e.deliveryCustomerParty.party.person.familyName.value)
 		e.deliveryCustomerParty.party.partyIdentification.forEach((e2)=>{
-			var schemeID=''
+			let schemeID=''
 			if(e2.ID.attr!=undefined){
 				schemeID=(e2.ID.attr.schemeID || '').toLowerCase()
 			}
@@ -493,7 +475,7 @@ function listeDuzenle(dbModel,e,cb){
 	}else{
 		obj['party']['title']=e.despatchSupplierParty.party.partyName.name.value || (e.despatchSupplierParty.party.person.firstName.value + ' ' + e.despatchSupplierParty.party.person.familyName.value)
 		e.despatchSupplierParty.party.partyIdentification.forEach((e2)=>{
-			var schemeID=''
+			let schemeID=''
 			if(e2.ID.attr!=undefined){
 				schemeID=(e2.ID.attr.schemeID || '').toLowerCase()
 			}
@@ -565,7 +547,7 @@ function listeDuzenle(dbModel,e,cb){
 }
 
 function getDespatch(dbModel, member, req, res, next, cb){
-	var _id=''
+	let _id=''
 	if(req.params.param1=='inbox' && req.params.param2!=undefined){
 	 _id=req.params.param2 || req.query._id || ''
 	}else if(req.params.param1=='outbox' && req.params.param2!=undefined){
@@ -573,8 +555,8 @@ function getDespatch(dbModel, member, req, res, next, cb){
 	}else{
 		_id=req.params.param1 || req.query._id || ''
 	}
-	var includeAdditionalDocumentReference= req.query.includeAdditionalDocumentReference || false
-	var select='-additionalDocumentReference'
+	let includeAdditionalDocumentReference= req.query.includeAdditionalDocumentReference || false
+	let select='-additionalDocumentReference'
 	if(includeAdditionalDocumentReference==true)
 		select=''
 
@@ -585,7 +567,7 @@ function getDespatch(dbModel, member, req, res, next, cb){
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
 				if(!req.query.print){
-					var data=doc.toJSON()
+					let data=doc.toJSON()
 					cb(data)
 				}else{
 					yazdir(dbModel,'despatch',req,res,doc,(err,html)=>{
@@ -599,7 +581,7 @@ function getDespatch(dbModel, member, req, res, next, cb){
 }
 
 function yazdir(dbModel,moduleName,req,res,doc,cb){
-	var designId=req.query.designId || ''
+	let designId=req.query.designId || ''
 	if((doc.eIntegrator || '')=='')
 		return printHelper.print(dbModel,'despatch',doc, designId, cb)
 	doc.populate('eIntegrator').execPopulate((err,doc2)=>{
@@ -616,16 +598,16 @@ function yazdir(dbModel,moduleName,req,res,doc,cb){
 }
 
 function getEDespatchUserList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1), 
+	let options={page: (req.query.page || 1), 
 		limit:10
 	}
 
 	if((req.query.pageSize || req.query.limit))
 		options['limit']=req.query.pageSize || req.query.limit
 
-	var filter = {}
+	let filter = {}
 
-	var vkn=req.query.vkn || req.query.tckn || req.query.vknTckn || req.query.taxNumber || req.query.identifier || ''
+	let vkn=req.query.vkn || req.query.tckn || req.query.vknTckn || req.query.taxNumber || req.query.identifier || ''
 
 	if(vkn!='')
 		filter['identifier']={ '$regex': '.*' + vkn + '.*' ,'$options': 'i' }
@@ -652,7 +634,7 @@ function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
 	
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 
 	dbModel.despatches.findOne({_id:data._id},(err,doc)=>{
@@ -686,7 +668,7 @@ function autoCreateCariKart(dbModel, doc, cb){
 
 function autoCreateVendor(dbModel, doc, cb){
 	
-	var newDoc = new dbModel.parties(data)
+	let newDoc = new dbModel.parties(data)
 	if(!epValidateSync(newDoc,next))
 		return
 

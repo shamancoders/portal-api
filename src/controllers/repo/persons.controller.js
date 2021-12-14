@@ -136,6 +136,7 @@ function post(dbModel, member, req, res, next, cb){
 	if((data.station || '')=='')
 		data.station=undefined
 
+	console.log(`data:`,data)
 	var newDoc = new dbModel.persons(data)
 	if(!epValidateSync(newDoc,next))
 		return

@@ -59,7 +59,7 @@ function generate(dbModel, member, req, res, next, callback){
 							var data=doc.toJSON()
 							data._id=undefined
 							var newDoc=new dbModel.items(data)
-							newDoc.save((err,newdoc2)=>{
+							newDoc.save((err,newDoc2)=>{
 								if(!err){
 									basarili++
 									dbModel.autonew_items.updateOne({_id:doc._id},{$set:{generated:true,itemId:newDoc2._id}},()=>{
