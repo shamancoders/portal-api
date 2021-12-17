@@ -1,0 +1,48 @@
+{
+	"name": "portal-api",
+	"version": "2.0.1",
+	"description": "Gany Portal ERP Rest API",
+	"config_file": "c:/arge/ganygo/.ggconfig/config-all.json",
+	"passport_api": "http://pass.ganygo.com/auth",
+	"passport_login": "http://pass.ganygo.com/login",
+	"httpserver": {
+		"port": 1000
+	},
+	"mongodb": {
+		"master": "mongodb://localhost:27017/****",
+		"web": "mongodb://localhost:27017/****",
+		"worker": "mongodb://localhost:27017/****",
+		"server1": "mongodb://localhost:27017/",
+		"server2": "",
+		"server3": ""
+	},
+	"restServices": {},
+	"mail": {
+		"host": "smtptt.****.net",
+		"port": 587,
+		"secure": false,
+		"auth": {
+			"user": "****@****.net",
+			"pass": "****"
+		}
+	},
+	"errorMail": {
+		"host": "smtp.****.net",
+		"port": 587,
+		"secure": false,
+		"auth": {
+			"user": "****@****.net",
+			"pass": "****"
+		},
+		"to": "****@****.net"
+	},
+	"smsSender": {
+		"url": "https://****.****.net/sendsms.json",
+		"method": "POST",
+		"user": "909999999999",
+		"pass": "****"
+	},
+	"secretWord": "****",
+	"tmpDir": "/tmp",
+	"status": "release"
+}

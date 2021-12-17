@@ -18,7 +18,7 @@ global.version = '20210916'
 global.app = express()
 var cors = require('cors')
 app.use(cors())
-var flash = require('connect-flash')
+// var flash = require('connect-flash')
 
 app.use(favicon(path.join(__dirname, 'resources', 'web-icon.png')))
 
