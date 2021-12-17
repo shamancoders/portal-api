@@ -33,9 +33,9 @@ app.use(methodOverride())
 
 app.set('port', config.httpserver.port)
 
-global.fileImporter = require('./lib/file_importer')
-global.documentHelper = require('./lib/document_helper')
-global.printHelper = require('./lib/print_helper')
+global.fileImporter = require('./lib/file-importer')
+global.documentHelper = require('./lib/document-helper')
+global.printHelper = require('./lib/print-helper')
 global.programs = require('./services/programs/programs')
 global.auth = require('./lib/rest-helper')(config.passport_api)
 
