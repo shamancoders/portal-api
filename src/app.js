@@ -20,7 +20,7 @@ var cors = require('cors')
 app.use(cors())
 // var flash = require('connect-flash')
 
-app.use(favicon(path.join(__dirname, 'resources', 'web-icon.png')))
+app.use(favicon(path.join(__dirname, 'resources', 'favicon.ico')))
 
 app.use(logger('dev'))
 app.use(bodyParser.json({ limit: "100mb" }))
