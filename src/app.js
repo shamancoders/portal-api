@@ -39,12 +39,12 @@ global.printHelper = require('./lib/print-helper')
 global.programs = require('./services/programs/programs')
 global.auth = require('./lib/rest-helper')(config.passport_api)
 
-if(config.status != 'development') {
+// if(config.status != 'development') {
 	process.on('uncaughtException', function(err) {
 		errorLog('Caught exception: ', err)
-		mail.sendErrorMail(`${(new Date()).yyyymmddhhmmss()} ${app.get('name')} Error`, err)
+		// mail.sendErrorMail(`${(new Date()).yyyymmddhhmmss()} ${app.get('name')} Error`, err)
 	})
-}
+// }
 
 
 
@@ -55,8 +55,7 @@ module.exports = () => {
 				require('./init-static-values.js')()
 				require('./routes/index')(app)
 				testControllers(false)
-				// console.log(`restServices:`,restServices)
-				// console.log(`config.restServices:`,config.restServices)
+				
 			} else {
 				errorLog(err)
 			}
