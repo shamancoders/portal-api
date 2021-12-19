@@ -52,11 +52,11 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)}
+	let options={page: (req.query.page || 1)}
 	if((req.query.pageSize || req.query.limit))
 		options['limit']=req.query.pageSize || req.query.limit
 
-	var filter = {}
+	let filter = {}
 
 	if((req.query.importerType || '')!='')
 		filter['importerType']=req.query.importerType
@@ -69,8 +69,8 @@ function getList(dbModel, member, req, res, next, cb){
 }
 
 function getOne(dbModel, member, req, res, next, cb){
-	var populate=[{path:'files',select:'_id name extension fileName type size createdDate modifiedDate'}]
-	var fileId=req.query.fileId || req.query.fileid || ''
+	let populate=[{path:'files',select:'_id name extension fileName type size createdDate modifiedDate'}]
+	let fileId=req.query.fileId || req.query.fileid || ''
 
 	dbModel.file_importers.findOne({_id:req.params.param1}).populate(populate).exec((err,doc)=>{
 		if(dberr(err,next)){
@@ -87,7 +87,7 @@ function getOne(dbModel, member, req, res, next, cb){
 					})
 				}
 				if(fileId!=''){
-					var bFound=false
+					let bFound=false
 					doc.files.forEach((e)=>{
 						if(e._id==fileId){
 							bFound=true
@@ -121,10 +121,10 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 
-	var newDoc = new dbModel.file_importers(data)
+	let newDoc = new dbModel.file_importers(data)
 	if(!epValidateSync(newDoc,next))
 		return
 
@@ -140,7 +140,7 @@ function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined){
 		cb({success: false,error: {code: 'WRONG_PARAMETER', message: 'Para metre hatali'}})
 	}else{
-		var data = req.body || {}
+		let data = req.body || {}
 
 		data._id = req.params.param1
 		data.modifiedDate = new Date()
@@ -149,8 +149,8 @@ function put(dbModel, member, req, res, next, cb){
 		dbModel.file_importers.findOne({ _id: data._id},(err,doc)=>{
 			if(dberr(err,next)){
 				if(dbnull(doc,next)){
-					var doc2 = Object.assign(doc, data)
-					var newDoc = new dbModel.file_importers(doc2)
+					let doc2 = Object.assign(doc, data)
+					let newDoc = new dbModel.file_importers(doc2)
 					if(!epValidateSync(newDoc,next))
 					return
 
@@ -168,7 +168,7 @@ function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
 
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.file_importers.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next))
@@ -182,8 +182,8 @@ function saveFile(dbModel, member, req, res, next, cb){
 		return error.param1(req, next)
 	if(req.params.param2==undefined)
 		return error.param2(req,next)
-	var data = req.body || {}
-	var populate=[{path:'files',select:'_id name extension size type fileName '}]
+	let data = req.body || {}
+	let populate=[{path:'files',select:'_id name extension size type fileName '}]
 
 	if(req.body._id!=undefined){
 		data['_id']=req.body._id
@@ -197,7 +197,7 @@ function saveFile(dbModel, member, req, res, next, cb){
 			if(dbnull(doc,next)){
 				if(data._id==undefined){
 
-					var newfileDoc = new dbModel.files(data)
+					let newfileDoc = new dbModel.files(data)
 					epValidateSync(newfileDoc)
 
 					newfileDoc.save((err, newfileDoc2)=>{
@@ -211,7 +211,7 @@ function saveFile(dbModel, member, req, res, next, cb){
 						}
 					})
 				}else{
-					var bFound=false
+					let bFound=false
 					doc.files.forEach((f)=>{
 						if(f._id != undefined){
 							if(f.name==data['name'] && f.extension==data['extension'] && f._id != data._id){
@@ -259,7 +259,7 @@ function setStart(dbModel, member, req, res, next, cb){
 	if(req.params.param2==undefined || (req.query.fileId || req.query.fileid || '') == '')
 		return error.param2(req,next)
 
-	var fileId=req.query.fileId || req.query.fileid || ''
+	let fileId=req.query.fileId || req.query.fileid || ''
 	dbModel.file_importers.findOne({ _id: req.params.param1,files:{$elemMatch:{$eq:fileId}}},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
@@ -286,7 +286,7 @@ function deleteFile(dbModel, member, req, res, next, cb){
 	if(req.params.param2==undefined || (req.query.fileId || req.query.fileid || '') == '')
 		return error.param2(req,next)
 
-	var fileId=req.query.fileId || req.query.fileid || ''
+	let fileId=req.query.fileId || req.query.fileid || ''
 	dbModel.file_importers.findOne({ _id: req.params.param1,files:{$elemMatch:{$eq:fileId}}},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
@@ -315,12 +315,12 @@ function runCode(dbModel, member, req, res, next, cb){
 	if(req.params.param2==undefined)
 		return error.param2(req,next)
 
-	var data = req.body || {}
-	var populate=['startFile','files']
+	let data = req.body || {}
+	let populate=['startFile','files']
 	dbModel.file_importers.findOne({_id:req.params.param1}).populate(populate).exec((err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var sampleData={}
+				let sampleData={}
 				if(data.sampleData!=undefined)
 					sampleData=data.sampleData
 				services.tr216LocalConnector.run(doc,sampleData,(err,resp)=>{

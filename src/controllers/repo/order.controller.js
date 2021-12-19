@@ -84,11 +84,11 @@ module.exports = (dbModel, member, req, res, next, cb) => {
 
 
 function calc(dbModel, member, req, res, next, cb) {
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = undefined
 	data = util.amountValueFixed2Digit(data, '')
 	data = dataDuzelt(data)
-	var newDoc = new dbModel.orders(data)
+	let newDoc = new dbModel.orders(data)
 
 
 	newDoc.buyerCustomerParty.party.partyIdentification[0].ID.value = newDoc.orderLine.length.toString()
@@ -296,14 +296,14 @@ function calculateOrder(doc) {
 }
 
 function print(dbModel, member, req, res, next, cb) {
-	var id = req.params.param2 || req.body['id'] || req.query.id || ''
+	let id = req.params.param2 || req.body['id'] || req.query.id || ''
 	if(id == '')
 		return error.param2(req, next)
 
 	dbModel.orders.findOne({ _id: id }, (err, doc) => {
 		if(dberr(err, next)) {
 			if(dbnull(doc, next)) {
-				var module = doc.ioType == 0 ? 'order.outbox' : 'order.inbox'
+				let module = doc.ioType == 0 ? 'order.outbox' : 'order.inbox'
 				printHelper.print(dbModel, module, doc, (req.query.designId || ''), (err, renderedCode) => {
 					if(!err) {
 						cb(renderedCode)
@@ -317,15 +317,15 @@ function print(dbModel, member, req, res, next, cb) {
 }
 
 function copy(dbModel, member, req, res, next, cb) {
-	var id = req.params.param2 || req.body['id'] || req.query.id || ''
-	var newName = req.body['newName'] || req.body['name'] || ''
+	let id = req.params.param2 || req.body['id'] || req.query.id || ''
+	let newName = req.body['newName'] || req.body['name'] || ''
 	if(id == '')
 		return error.param2(req, next)
 
 	dbModel.orders.findOne({ _id: id }, (err, doc) => {
 		if(dberr(err, next)) {
 			if(dbnull(doc, next)) {
-				var data = doc.toJSON()
+				let data = doc.toJSON()
 				data._id = undefined
 				delete data._id
 				if(newName.length == 16) {
@@ -334,7 +334,7 @@ function copy(dbModel, member, req, res, next, cb) {
 					data.ID.value = ''
 				}
 
-				var newDoc = new dbModel.orders(data)
+				let newDoc = new dbModel.orders(data)
 				if(!epValidateSync(newDoc, next))
 					return
 				newDoc.createdDate = new Date()
@@ -354,7 +354,7 @@ function copy(dbModel, member, req, res, next, cb) {
 						documentHelper.yeniSiparisNumarasi(dbModel, eIntegratorDoc, newDoc, (err, newDoc2) => {
 							newDoc2.save((err, newDoc3) => {
 								if(dberr(err, next)) {
-									var obj = newDoc3.toJSON()
+									let obj = newDoc3.toJSON()
 									obj['newName'] = obj.ID.value
 									cb(obj)
 								}
@@ -368,11 +368,11 @@ function copy(dbModel, member, req, res, next, cb) {
 }
 
 function post(dbModel, member, req, res, next, cb) {
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = undefined
 	data = util.amountValueFixed2Digit(data, '')
 	data = dataDuzelt(data)
-	var newDoc = new dbModel.orders(data)
+	let newDoc = new dbModel.orders(data)
 	if(!epValidateSync(newDoc, next))
 		return
 
@@ -401,7 +401,7 @@ function put(dbModel, member, req, res, next, cb) {
 	if(req.params.param1 == undefined)
 		return error.param1(req, next)
 
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 
 
@@ -437,7 +437,7 @@ function put(dbModel, member, req, res, next, cb) {
 
 
 function importOutbox(dbModel, member, req, res, next, cb) {
-	var data = req.body || {}
+	let data = req.body || {}
 
 	if(!data.files)
 		return next({ code: 'WRONG_PARAMETER', message: 'files elemani bulunamadi' })
@@ -473,15 +473,15 @@ function importOutbox(dbModel, member, req, res, next, cb) {
 }
 
 function getErrors(dbModel, member, req, res, next, cb) {
-	var _id = req.params.param2 || req.query._id || ''
-	var select = '_id profileId ID orderTypeCode localDocumentId issueDate ioType eIntegrator orderErrors localErrors orderStatus localStatus'
+	let _id = req.params.param2 || req.query._id || ''
+	let select = '_id profileId ID orderTypeCode localDocumentId issueDate ioType eIntegrator orderErrors localErrors orderStatus localStatus'
 
 	if(_id == '')
 		return error.param2(req, next)
 	dbModel.orders.findOne({ _id: _id }, select).exec((err, doc) => {
 		if(dberr(err, next)) {
 			if(dbnull(doc, next)) {
-				var data = doc.toJSON()
+				let data = doc.toJSON()
 				cb(data)
 			}
 		}
@@ -505,7 +505,7 @@ function dataDuzelt(data) {
 
 
 function getOrderList(ioType, dbModel, member, req, res, next, cb) {
-	var options = {
+	let options = {
 		page: (req.query.page || 1),
 		populate: [
 			{ path: 'eIntegrator', select: '_id eIntegrator name username' }
@@ -517,7 +517,7 @@ function getOrderList(ioType, dbModel, member, req, res, next, cb) {
 	if((req.query.pageSize || req.query.limit))
 		options['limit'] = req.query.pageSize || req.query.limit
 
-	var filter = { ioType: ioType }
+	let filter = { ioType: ioType }
 
 	if(req.query.eIntegrator)
 		filter['eIntegrator'] = req.query.eIntegrator
@@ -553,7 +553,7 @@ function getOrderList(ioType, dbModel, member, req, res, next, cb) {
 
 	dbModel.orders.paginate(filter, options, (err, resp) => {
 		if(dberr(err, next)) {
-			var liste = []
+			let liste = []
 			iteration(resp.docs, (item, cb1) => {
 				listeDuzenle(dbModel, item, (err, obj) => {
 					if(obj)
@@ -571,7 +571,7 @@ function getOrderList(ioType, dbModel, member, req, res, next, cb) {
 }
 
 function listeDuzenle(dbModel, e, cb) {
-	var obj = {}
+	let obj = {}
 	obj['_id'] = e['_id']
 	obj['eIntegrator'] = e['eIntegrator']
 	obj['ioType'] = e['ioType']
@@ -586,7 +586,7 @@ function listeDuzenle(dbModel, e, cb) {
 	if(e.ioType == 0) {
 		obj['party']['title'] = e.buyerCustomerParty.party.partyName.name.value || (e.buyerCustomerParty.party.person.firstName.value + ' ' + e.buyerCustomerParty.party.person.familyName.value)
 		e.buyerCustomerParty.party.partyIdentification.forEach((e2) => {
-			var schemeID = ''
+			let schemeID = ''
 			if(e2.ID.attr != undefined) {
 				schemeID = (e2.ID.attr.schemeID || '').toLowerCase()
 			}
@@ -598,7 +598,7 @@ function listeDuzenle(dbModel, e, cb) {
 	} else {
 		obj['party']['title'] = e.sellerSupplierParty.party.partyName.name.value || (e.sellerSupplierParty.party.person.firstName.value + ' ' + e.sellerSupplierParty.party.person.familyName.value)
 		e.sellerSupplierParty.party.partyIdentification.forEach((e2) => {
-			var schemeID = ''
+			let schemeID = ''
 			if(e2.ID.attr != undefined) {
 				schemeID = (e2.ID.attr.schemeID || '').toLowerCase()
 			}
@@ -624,9 +624,9 @@ function listeDuzenle(dbModel, e, cb) {
 }
 
 function getOrder(dbModel, member, req, res, next, cb) {
-	var _id = req.params.param1 || req.query._id || ''
-	var includeAdditionalDocumentReference = req.query.includeAdditionalDocumentReference || false
-	var select = '-additionalDocumentReference'
+	let _id = req.params.param1 || req.query._id || ''
+	let includeAdditionalDocumentReference = req.query.includeAdditionalDocumentReference || false
+	let select = '-additionalDocumentReference'
 	if(includeAdditionalDocumentReference == true)
 		select = ''
 
@@ -637,7 +637,7 @@ function getOrder(dbModel, member, req, res, next, cb) {
 		if(dberr(err, next)) {
 			if(dbnull(doc, next)) {
 				if(!req.query.print) {
-					var data = doc.toJSON()
+					let data = doc.toJSON()
 					cb(data)
 				} else {
 					yazdir(dbModel, 'order', req, res, doc, (err, html) => {
@@ -651,7 +651,7 @@ function getOrder(dbModel, member, req, res, next, cb) {
 }
 
 function yazdir(dbModel, moduleName, req, res, doc, cb) {
-	var designId = req.query.designId || ''
+	let designId = req.query.designId || ''
 	if((doc.eIntegrator || '') == '')
 		return printHelper.print(dbModel, 'order', doc, designId, cb)
 	doc.populate('eIntegrator').execPopulate((err, doc2) => {
@@ -672,7 +672,7 @@ function deleteItem(dbModel, member, req, res, next, cb) {
 	if(req.params.param1 == undefined)
 		return error.param1(req, next)
 
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 
 	dbModel.orders.findOne({ _id: data._id }, (err, doc) => {
@@ -706,7 +706,7 @@ function autoCreateCariKart(dbModel, doc, cb) {
 
 function autoCreateVendor(dbModel, doc, cb) {
 
-	var newDoc = new dbModel.parties(data)
+	let newDoc = new dbModel.parties(data)
 	if(!epValidateSync(newDoc, next))
 		return
 

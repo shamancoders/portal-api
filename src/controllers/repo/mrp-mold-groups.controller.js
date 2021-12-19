@@ -98,7 +98,7 @@ function put(dbModel, member, req, res, next, cb){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.mrp_mold_groups.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

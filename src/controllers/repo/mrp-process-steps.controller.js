@@ -25,7 +25,7 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={
+	let options={
 		page: (req.query.page || 1)
 	}
 
@@ -33,7 +33,7 @@ function getList(dbModel, member, req, res, next, cb){
 		options['limit']=req.query.pageSize || req.query.limit
 
 
-	var filter = {}
+	let filter = {}
 
 	if((req.query.useMaterialInput || '')!='')
 		filter['useMaterialInput']=req.query.useMaterialInput
@@ -70,10 +70,10 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 
-	var newDoc = new dbModel.mrp_process_steps(data)
+	let newDoc = new dbModel.mrp_process_steps(data)
 	if(!epValidateSync(newDoc,next))
 		return
 	newDoc.save((err, newDoc2)=>{
@@ -89,7 +89,7 @@ function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
 
-	var data = req.body || {}
+	let data = req.body || {}
 
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
@@ -97,8 +97,8 @@ function put(dbModel, member, req, res, next, cb){
 	dbModel.mrp_process_steps.findOne({ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.mrp_process_steps(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new dbModel.mrp_process_steps(doc2)
 				if(!epValidateSync(newDoc,next))
 					return
 				newDoc.save((err, newDoc2)=>{
@@ -115,7 +115,7 @@ function put(dbModel, member, req, res, next, cb){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.mrp_process_steps.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

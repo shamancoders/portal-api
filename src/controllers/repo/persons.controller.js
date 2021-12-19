@@ -34,8 +34,8 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 
 
 function copy(dbModel, member, req, res, next, cb){
-	var id=req.params.param2 || req.body['id'] || req.query.id || ''
-	var newName=req.body['newName'] || req.body['name'] || ''
+	let id=req.params.param2 || req.body['id'] || req.query.id || ''
+	let newName=req.body['newName'] || req.body['name'] || ''
 
 	if(id=='')
 		error.param2(req,next)
@@ -43,7 +43,7 @@ function copy(dbModel, member, req, res, next, cb){
 	dbModel.persons.findOne({ _id: id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var data=doc.toJSON()
+				let data=doc.toJSON()
 				data._id=undefined
 				delete data._id
 				if(newName!=''){
@@ -54,7 +54,7 @@ function copy(dbModel, member, req, res, next, cb){
 				data.createdDate=new Date()
 				data.modifiedDate=new Date()
 
-				var newDoc = new dbModel.persons(data)
+				let newDoc = new dbModel.persons(data)
 				if(!epValidateSync(newDoc,next))
 					return
 				newDoc.save((err, newDoc2)=>{
@@ -68,8 +68,8 @@ function copy(dbModel, member, req, res, next, cb){
 }
 function getIdList(dbModel, member, req, res, next, cb){
 	
-	var filter = {}
-	var idList=req.params.param1.replaceAll(';',',').split(',')
+	let filter = {}
+	let idList=req.params.param1.replaceAll(';',',').split(',')
 
 	filter['_id']={$in:idList}
 
@@ -81,11 +81,11 @@ function getIdList(dbModel, member, req, res, next, cb){
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)}
+	let options={page: (req.query.page || 1)}
 	if(!req.query.page){
 		options.limit=50000
 	}
-	var filter = {}
+	let filter = {}
 
 	if((req.query.passive || '')!='')
 		filter['passive']=req.query.passive
@@ -127,7 +127,7 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 	if((data.account || '')=='')
 		data.account=undefined
@@ -137,7 +137,7 @@ function post(dbModel, member, req, res, next, cb){
 		data.station=undefined
 
 	console.log(`data:`,data)
-	var newDoc = new dbModel.persons(data)
+	let newDoc = new dbModel.persons(data)
 	if(!epValidateSync(newDoc,next))
 		return
 	newDoc.save((err, newDoc2)=>{
@@ -150,7 +150,7 @@ function post(dbModel, member, req, res, next, cb){
 function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data=req.body || {}
+	let data=req.body || {}
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
 	if((data.account || '')=='')
@@ -163,8 +163,8 @@ function put(dbModel, member, req, res, next, cb){
 	dbModel.persons.findOne({ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.persons(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new dbModel.persons(doc2)
 				if(!epValidateSync(newDoc,next))
 					return
 				
@@ -181,7 +181,7 @@ function put(dbModel, member, req, res, next, cb){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.persons.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

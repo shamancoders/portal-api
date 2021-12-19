@@ -34,8 +34,8 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function copy(dbModel, member, req, res, next, cb){
-	var id=req.params.param2 || req.body['id'] || req.query.id || ''
-	var newName=req.body['newName'] || req.body['name'] || ''
+	let id=req.params.param2 || req.body['id'] || req.query.id || ''
+	let newName=req.body['newName'] || req.body['name'] || ''
 
 	if(id=='')
 		error.param2(req,next)
@@ -43,7 +43,7 @@ function copy(dbModel, member, req, res, next, cb){
 	dbModel.items.findOne({ _id: id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var data=doc.toJSON()
+				let data=doc.toJSON()
 				data._id=undefined
 				delete data._id
 				if(newName!=''){
@@ -54,14 +54,14 @@ function copy(dbModel, member, req, res, next, cb){
 				data.createdDate=new Date()
 				data.modifiedDate=new Date()
 
-				var newDoc = new dbModel.items(data)
+				let newDoc = new dbModel.items(data)
 				if(!epValidateSync(newDoc,next))
 					return
 				newDoc.save((err, newDoc2)=>{
 					if(dberr(err,next)){
 						receteleriKaydet(dbModel,doc,newDoc2,(err,newDoc3)=>{
 							if(!err){
-								var obj=newDoc3.toJSON()
+								let obj=newDoc3.toJSON()
 								obj['newName']=data.name.value
 								cb(obj)
 							}else{
@@ -84,15 +84,15 @@ function receteleriKaydet(dbModel,itemDoc,newItemDoc,cb){
 			if(docs.length==0) 
 				return cb(null,newItemDoc)
 
-			var index=0
+			let index=0
 
 			function kaydet(cb){
 				if(index>=docs.length) return cb(null)
-					var data=docs[index].toJSON()
+					let data=docs[index].toJSON()
 				data._id=undefined
 				delete data._id
 				data['item']=newItemDoc._id
-				var yeniReceteDoc=new dbModel.recipes(data)
+				let yeniReceteDoc=new dbModel.recipes(data)
 				yeniReceteDoc.save((err,yeniReceteDoc2)=>{
 					if(!err){
 						if(itemDoc.recipe==docs[index]._id){
@@ -124,14 +124,14 @@ function receteleriKaydet(dbModel,itemDoc,newItemDoc,cb){
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)
+	let options={page: (req.query.page || 1)
 		
 	}
 	
 	if((req.query.pageSize || req.query.limit))
 		options['limit']=req.query.pageSize || req.query.limit
 	
-	var filter = {}
+	let filter = {}
 	options.sort={
 		'name.value':1
 	}
@@ -213,8 +213,8 @@ function getList(dbModel, member, req, res, next, cb){
 
 function getIdList(dbModel, member, req, res, next, cb){
 	
-	var filter = {}
-	var idList=req.params.param1.replaceAll(';',',').split(',')
+	let filter = {}
+	let idList=req.params.param1.replaceAll(';',',').split(',')
 
 	filter['_id']={$in:idList}
 
@@ -227,7 +227,7 @@ function getIdList(dbModel, member, req, res, next, cb){
 
 
 function getOne(dbModel, member, req, res, next, cb){
-	var populate=[
+	let populate=[
 	{path:'images',select:'_id name extension fileName data type size createdDate modifiedDate'},
 	{path:'files',select:'_id name extension fileName data type size createdDate modifiedDate'},
 	{path:'packingOptions.packingType',select:'_id name description width length height weight maxWeight'},
@@ -242,7 +242,7 @@ function getOne(dbModel, member, req, res, next, cb){
 
 					cb(doc)
 				}else{
-					var moduleType='item'
+					let moduleType='item'
 					if(doc.itemType=='product' || doc.itemType=='semi-product')
 						moduleType='item-product'
 
@@ -260,13 +260,13 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 
 	data=dataDuzenle(data,req)
 
 	saveFiles(dbModel,data,(err,data)=>{
-		var newDoc = new dbModel.items(data)
+		let newDoc = new dbModel.items(data)
 		if(!epValidateSync(newDoc,next))
 			return
 		newDoc.save((err, newDoc2)=>{
@@ -280,7 +280,7 @@ function post(dbModel, member, req, res, next, cb){
 function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data=req.body || {}
+	let data=req.body || {}
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
 	data=dataDuzenle(data,req)
@@ -289,8 +289,8 @@ function put(dbModel, member, req, res, next, cb){
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
 				saveFiles(dbModel,data,(err,data)=>{
-					var doc2 = Object.assign(doc, data)
-					var newDoc = new dbModel.items(doc2)
+					let doc2 = Object.assign(doc, data)
+					let newDoc = new dbModel.items(doc2)
 					if(!epValidateSync(newDoc,next))
 						return
 
@@ -331,7 +331,7 @@ function dataDuzenle(data,req){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.items.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
@@ -357,12 +357,12 @@ function dosyaKaydet(dbModel,files,cb){
 	if(files.length==0)
 		return cb(null,[])
 
-	var dizi=[]
-	var index=0
+	let dizi=[]
+	let index=0
 	function kaydet(cb){
 		if(index>=files.length)
 			return cb(null)
-		var data={ 
+		let data={ 
 			data:files[index].data,
 			fileName:(files[index].fileName || ''),
 			name:(files[index].name || ''),
@@ -393,7 +393,7 @@ function dosyaKaydet(dbModel,files,cb){
 							setTimeout(kaydet,0,cb)
 						})
 					}else{
-						var newFile=new dbModel.files(data)
+						let newFile=new dbModel.files(data)
 						newFile.save((err,doc2)=>{
 							if(!err){
 								dizi.push(doc2._id)
@@ -410,7 +410,7 @@ function dosyaKaydet(dbModel,files,cb){
 				}
 			})
 		}else{
-			var newFile=new dbModel.files(data)
+			let newFile=new dbModel.files(data)
 			newFile.save((err,doc2)=>{
 				if(!err){
 					dizi.push(doc2._id)

@@ -23,14 +23,14 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)
+	let options={page: (req.query.page || 1)
 	}
 
 	if((req.query.pageSize || req.query.limit))
 		options['limit']=req.query.pageSize || req.query.limit
 
 
-	var filter = {}
+	let filter = {}
 
 	if((req.query.passive || '')!='')
 		filter['passive']=req.query.passive
@@ -56,8 +56,8 @@ function getList(dbModel, member, req, res, next, cb){
 		dbModel.recipes.findOne({_id:req.query.recipe},(err,recipeDoc)=>{
 			if(dberr(err,next)){
 				if(dbnull(recipeDoc,cb)){
-					var dizi=[]
-					var processIndex=-1
+					let dizi=[]
+					let processIndex=-1
 					if((req.query.processIndex || '')!='')
 						processIndex=Number(req.query.processIndex)
 
@@ -97,13 +97,13 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 	if((data.account || '')=='')
 		data.account=undefined
 
 
-	var newDoc = new dbModel.mrp_molds(data)
+	let newDoc = new dbModel.mrp_molds(data)
 	if(!epValidateSync(newDoc,next))
 		return
 	newDoc.save((err, newDoc2)=>{
@@ -117,7 +117,7 @@ function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
 
-	var data = req.body || {}
+	let data = req.body || {}
 
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
@@ -127,8 +127,8 @@ function put(dbModel, member, req, res, next, cb){
 	dbModel.mrp_molds.findOne({ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.mrp_molds(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new dbModel.mrp_molds(doc2)
 				if(!epValidateSync(newDoc,next))
 					return
 
@@ -146,7 +146,7 @@ function put(dbModel, member, req, res, next, cb){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.mrp_molds.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

@@ -18,7 +18,7 @@ function getMyProfile(member,req,res,next,cb){
 	db.sysusers.findOne({_id:member._id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var myProfile={
+				let myProfile={
 					_id:doc._id,
 					name:doc.name,
 					lastName:doc.lastName,
@@ -41,8 +41,8 @@ function put(member,req,res,next,cb){
 				doc.email=req.body.email || ''
 				doc.gender=req.body.gender || ''
 
-				var oldPassword=req.body.oldPassword || ''
-				var newPassword=req.body.newPassword || ''
+				let oldPassword=req.body.oldPassword || ''
+				let newPassword=req.body.newPassword || ''
 
 				if(doc.name.trim()=='')
 					throw {code:'REQUIRE_FIELD',message:'Isim gereklidir.'}
@@ -58,7 +58,7 @@ function put(member,req,res,next,cb){
 
 				doc.save((err,newDoc)=>{
 					if(dberr(err,next)){
-						var myProfile={
+						let myProfile={
 							_id:newDoc._id,
 							name:newDoc.name,
 							lastName:newDoc.lastName,

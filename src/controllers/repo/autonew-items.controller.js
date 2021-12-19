@@ -29,11 +29,11 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function generate(dbModel, member, req, res, next, callback){
-	var data = req.body || {}
+	let data = req.body || {}
 	if(data.list==undefined)
 		return next({code: 'ERROR', message: 'list is required.'})
 	
-	var idList=[]
+	let idList=[]
 	data.list.forEach((e)=>{
 		if(e && typeof e === 'object' && e.constructor === Object){
 			if(e._id!=undefined){
@@ -47,18 +47,18 @@ function generate(dbModel, member, req, res, next, callback){
 			idList.push(e)
 		}
 	})
-	var filter={_id:{$in:idList}}
+	let filter={_id:{$in:idList}}
 
 	dbModel.autonew_items.find(filter,(err,docs)=>{
 		if(dberr(err,next)){
-			var basarili=0
+			let basarili=0
 			iteration(docs,(doc,cb)=>{
 				dbModel.items.findOne({'name.value':doc.name.value},(err,itemDoc)=>{
 					if(!err){
 						if(itemDoc==null){
-							var data=doc.toJSON()
+							let data=doc.toJSON()
 							data._id=undefined
-							var newDoc=new dbModel.items(data)
+							let newDoc=new dbModel.items(data)
 							newDoc.save((err,newDoc2)=>{
 								if(!err){
 									basarili++
@@ -85,11 +85,11 @@ function generate(dbModel, member, req, res, next, callback){
 }
 
 function nogenerate(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	if(data.list==undefined)
 		return next({code: 'ERROR', message: 'list is required.'})
 
-	var idList=[]
+	let idList=[]
 	data.list.forEach((e)=>{
 		if(e && typeof e === 'object' && e.constructor === Object){
 			if(e._id!=undefined){
@@ -103,7 +103,7 @@ function nogenerate(dbModel, member, req, res, next, cb){
 			idList.push(e)
 		}
 	})
-	var filter={_id:{$in:idList}}
+	let filter={_id:{$in:idList}}
 	dbModel.autonew_items.updateMany(filter,{$set:{cancelled:true}},{multi:true},(err,c)=>{
 		if(dberr(err,next)){
 			cb(`${c.n} kayıt iptal edildi`)
@@ -112,14 +112,14 @@ function nogenerate(dbModel, member, req, res, next, cb){
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)
+	let options={page: (req.query.page || 1)
 		
 	}
 	
 	if((req.query.pageSize || req.query.limit))
 		options['limit']=req.query.pageSize || req.query.limit
 	
-	var filter = {cancelled:false,generated:false}
+	let filter = {cancelled:false,generated:false}
 	options.sort={
 		'name.value':1
 	}
@@ -196,7 +196,7 @@ function getList(dbModel, member, req, res, next, cb){
 }
 
 function getOne(dbModel, member, req, res, next, cb){
-	var populate=[
+	let populate=[
 	{path:'images',select:'_id name extension fileName data type size createdDate modifiedDate'},
 	{path:'files',select:'_id name extension fileName data type size createdDate modifiedDate'},
 	{path:'packingOptions.packingType',select:'_id name description width length height weight maxWeight'},
@@ -214,12 +214,12 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 
 	data=dataDuzenle(data,req)
 
-	var newDoc = new dbModel.autonew_items(data)
+	let newDoc = new dbModel.autonew_items(data)
 	if(!epValidateSync(newDoc,next))
 		return
 	newDoc.save((err, newDoc2)=>{
@@ -232,7 +232,7 @@ function post(dbModel, member, req, res, next, cb){
 function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data=req.body || {}
+	let data=req.body || {}
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
 	data=dataDuzenle(data,req)
@@ -240,8 +240,8 @@ function put(dbModel, member, req, res, next, cb){
 	dbModel.autonew_items.findOne({ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.autonew_items(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new dbModel.autonew_items(doc2)
 				if(!epValidateSync(newDoc,next))
 					return
 
@@ -281,7 +281,7 @@ function dataDuzenle(data,req){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.autonew_items.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

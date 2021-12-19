@@ -23,11 +23,11 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)}
+	let options={page: (req.query.page || 1)}
 	if(!req.query.page){
 		options.limit=50000
 	}
-	var filter = {}
+	let filter = {}
 
 	if((req.query.item || '')!='')
 		filter['item']=req.query.item
@@ -40,7 +40,7 @@ function getList(dbModel, member, req, res, next, cb){
 }
 
 function getOne(dbModel, member, req, res, next, cb){
-	var populate=[
+	let populate=[
 	{ path:'process.station', select:'_id name'},
 	{ path:'process.step', select:'_id name useMaterial'},
 	{ path:'process.machines.machineGroup', select:'_id name'},
@@ -71,7 +71,7 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 
 	if((data.item || '')=='')
@@ -106,7 +106,7 @@ function post(dbModel, member, req, res, next, cb){
 				})
 			}
 
-			var newDoc = new dbModel.recipes(data)
+			let newDoc = new dbModel.recipes(data)
 
 			if(!epValidateSync(newDoc,next))
 				return
@@ -115,7 +115,7 @@ function post(dbModel, member, req, res, next, cb){
 			newDoc.save((err, newDoc2)=>{
 				if(dberr(err,next)){
 					defaultReceteAyarla(dbModel,newDoc2,(err,newDoc3)=>{
-						var populate=[
+						let populate=[
 						{ path:'process.station', select:'_id name'},
 						{ path:'process.step', select:'_id name useMaterial'},
 						{ path:'process.machines.machineGroup', select:'_id name'},
@@ -140,7 +140,7 @@ function post(dbModel, member, req, res, next, cb){
 function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data=req.body || {}
+	let data=req.body || {}
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
 	if((data.item || '')=='')
@@ -163,15 +163,15 @@ function put(dbModel, member, req, res, next, cb){
 							}
 						}
 						doc.process=[]
-						var doc2 = Object.assign(doc, data)
-						var newDoc = new dbModel.recipes(doc2)
+						let doc2 = Object.assign(doc, data)
+						let newDoc = new dbModel.recipes(doc2)
 						if(!epValidateSync(newDoc,next))
 							return
 
 						newDoc=calculateMaterialSummary(newDoc)
 						newDoc.save((err, newDoc2)=>{
 							defaultReceteAyarla(dbModel,newDoc2,(err,newDoc3)=>{
-								var populate=[
+								let populate=[
 								{ path:'process.station', select:'_id name'},
 								{ path:'process.step', select:'_id name useMaterial'},
 								{ path:'process.machines.machineGroup', select:'_id name'},
@@ -200,7 +200,7 @@ function calculateMaterialSummary(doc){
 	doc.outputSummary=[]
 	doc.process.forEach((e)=>{
 		e.input.forEach((e1)=>{
-			var bFound=false
+			let bFound=false
 			doc.materialSummary.forEach((e2)=>{
 				if(e2.item==e1.item){
 					bFound=true
@@ -213,7 +213,7 @@ function calculateMaterialSummary(doc){
 			}
 		})
 		e.output.forEach((e1)=>{
-			var bFound=false
+			let bFound=false
 			doc.outputSummary.forEach((e2)=>{
 				if(e2.item==e1.item){
 					bFound=true
@@ -227,7 +227,7 @@ function calculateMaterialSummary(doc){
 		})
 	})
 
-	var toplamAgirlik=doc.totalWeight || 0
+	let toplamAgirlik=doc.totalWeight || 0
 
 	if(toplamAgirlik>0){
 		doc.materialSummary.forEach((e)=>{
@@ -266,7 +266,7 @@ function defaultReceteAyarla(dbModel,doc,cb){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.recipes.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

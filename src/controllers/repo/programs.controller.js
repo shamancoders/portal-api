@@ -41,8 +41,8 @@ module.exports = (dbModel, member, req, res, next, cb) => {
 
 function getIdList(dbModel, member, req, res, next, cb) {
 
-	var filter = {}
-	var idList = req.params.param1.replaceAll(';', ',').split(',')
+	let filter = {}
+	let idList = req.params.param1.replaceAll(';', ',').split(',')
 
 	filter['_id'] = { $in: idList }
 
@@ -54,7 +54,7 @@ function getIdList(dbModel, member, req, res, next, cb) {
 }
 
 function connectorTest(dbModel, member, req, res, next, cb) {
-	var data = req.body || {}
+	let data = req.body || {}
 	restServices.connector.request(`/${dbModel._id}/test`, { method: 'POST', body: data }, {}, (err, resp) => {
 		if(!err) {
 			cb(resp.data)
@@ -65,8 +65,8 @@ function connectorTest(dbModel, member, req, res, next, cb) {
 }
 
 function run(dbModel, member, req, res, next, cb) {
-	var id = req.params.param2 || req.body['id'] || req.query.id || ''
-	var data = req.body || {}
+	let id = req.params.param2 || req.body['id'] || req.query.id || ''
+	let data = req.body || {}
 	dbModel.programs.findOne({ _id: id }, (err, doc) => {
 		if(dberr(err, next)) {
 			if(dbnull(doc, next)) {
@@ -84,7 +84,7 @@ function run(dbModel, member, req, res, next, cb) {
 }
 
 function render(dbModel, member, req, res, next, cb) {
-	var doc = req.body || {}
+	let doc = req.body || {}
 	if(!doc.files)
 		return error.data(req, next, 'files')
 	if(doc.data == undefined) {
@@ -101,11 +101,11 @@ function render(dbModel, member, req, res, next, cb) {
 }
 
 function runCode(dbModel, member, req, res, next, cb) {
-	var doc = req.body || {}
+	let doc = req.body || {}
 	if(!doc.files)
 		return error.data(req, next, 'files')
 
-	var data = doc.data || {}
+	let data = doc.data || {}
 
 	programs.run(dbModel, doc, data, (err, result) => {
 		if(!err) {
@@ -117,8 +117,8 @@ function runCode(dbModel, member, req, res, next, cb) {
 }
 
 function copy(dbModel, member, req, res, next, cb) {
-	var id = req.params.param2 || req.body['id'] || req.query.id || ''
-	var newName = req.body['newName'] || req.body['name'] || ''
+	let id = req.params.param2 || req.body['id'] || req.query.id || ''
+	let newName = req.body['newName'] || req.body['name'] || ''
 
 	if(id == '')
 		return error.param2(req, next)
@@ -126,7 +126,7 @@ function copy(dbModel, member, req, res, next, cb) {
 	dbModel.programs.findOne({ _id: id }, (err, doc) => {
 		if(dberr(err, next)) {
 			if(dbnull(doc, next)) {
-				var data = doc.toJSON()
+				let data = doc.toJSON()
 				data._id = undefined
 				delete data._id
 				if(newName != '') {
@@ -136,12 +136,12 @@ function copy(dbModel, member, req, res, next, cb) {
 				}
 				data.createdDate = new Date()
 				data.modifiedDate = new Date()
-				var newDoc = new dbModel.programs(data)
+				let newDoc = new dbModel.programs(data)
 				if(!epValidateSync(newDoc, next))
 					return
 				newDoc.save((err, newDoc2) => {
 					if(dberr(err, next)) {
-						var obj = newDoc2.toJSON()
+						let obj = newDoc2.toJSON()
 						obj['newName'] = data.name
 						cb(obj)
 					}
@@ -153,7 +153,7 @@ function copy(dbModel, member, req, res, next, cb) {
 
 
 function getList(dbModel, member, req, res, next, cb) {
-	var options = {
+	let options = {
 		page: (req.query.page || 1),
 		select: '-files'
 	}
@@ -162,7 +162,7 @@ function getList(dbModel, member, req, res, next, cb) {
 		options['limit'] = req.query.pageSize || req.query.limit
 
 
-	var filter = {}
+	let filter = {}
 
 	if((req.query.passive || '') != '')
 		filter['passive'] = req.query.passive
@@ -187,11 +187,11 @@ function getOne(dbModel, member, req, res, next, cb) {
 }
 
 function post(dbModel, member, req, res, next, cb) {
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = undefined
 	data = fazlaliklariTemizleDuzelt(data)
 
-	var newDoc = new dbModel.programs(data)
+	let newDoc = new dbModel.programs(data)
 	if(!epValidateSync(newDoc, next))
 		return
 	newDoc.save((err, newDoc2) => {
@@ -204,7 +204,7 @@ function post(dbModel, member, req, res, next, cb) {
 function put(dbModel, member, req, res, next, cb) {
 	if(req.params.param1 == undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
@@ -213,8 +213,8 @@ function put(dbModel, member, req, res, next, cb) {
 	dbModel.programs.findOne({ _id: data._id }, (err, doc) => {
 		if(dberr(err, next)) {
 			if(dbnull(doc, next)) {
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.programs(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new dbModel.programs(doc2)
 				if(!epValidateSync(newDoc, next))
 					return
 				newDoc.save((err, newDoc2) => {
@@ -235,7 +235,7 @@ function fazlaliklariTemizleDuzelt(data) {
 function deleteItem(dbModel, member, req, res, next, cb) {
 	if(req.params.param1 == undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.programs.removeOne(member, { _id: data._id }, (err, doc) => {
 		if(dberr(err, next)) {

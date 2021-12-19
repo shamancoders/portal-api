@@ -25,11 +25,11 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)
+	let options={page: (req.query.page || 1)
 	}
 
 
-	var filter = {}
+	let filter = {}
 
 	if((req.query.name || '')!=''){
 		if(req.query.name!='*' && req.query.name!=' ')
@@ -67,10 +67,10 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 
-	var newDoc = new dbModel.pos_device_services(data)
+	let newDoc = new dbModel.pos_device_services(data)
 	if(!epValidateSync(newDoc,next))
 		return
 	newDoc.save((err, newDoc2)=>{
@@ -83,15 +83,15 @@ function post(dbModel, member, req, res, next, cb){
 function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
 
 	dbModel.pos_device_services.findOne({ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.pos_device_services(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new dbModel.pos_device_services(doc2)
 				if(!epValidateSync(newDoc,next))
 					return
 				newDoc.save((err, newDoc2)=>{
@@ -107,7 +107,7 @@ function put(dbModel, member, req, res, next, cb){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.pos_device_services.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

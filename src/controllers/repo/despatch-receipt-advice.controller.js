@@ -49,13 +49,13 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)
+	let options={page: (req.query.page || 1)
 
 	}
 	if(!req.query.page){
 		options.limit=50000
 	}
-	var filter = {}
+	let filter = {}
 
 	dbModel.despatches_receipt_advice.paginate(filter,options,(err, resp)=>{
 		if(dberr(err,next)){
@@ -75,7 +75,7 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 	data.despatch=data.despatch || ''
 	if(data.despatch=='')
@@ -85,7 +85,7 @@ function post(dbModel, member, req, res, next, cb){
 		if(dberr(err,next)){
 			if(dbnull(despatchDoc,next,`Irsaliye bulunamadi _id:${data.despatch}`)){
 
-				var newDoc = new dbModel.despatches_receipt_advice(data)
+				let newDoc = new dbModel.despatches_receipt_advice(data)
 				if(!epValidateSync(newDoc,next))
 					return
 				newDoc.uuid.value=uuid.v4()
@@ -117,15 +117,15 @@ function post(dbModel, member, req, res, next, cb){
 
 
 function getErrors(dbModel, member, req, res, next, cb){
-	var _id= req.params.param2 || req.query._id || ''
-	var select='-receiptAdviceLineInfos'
+	let _id= req.params.param2 || req.query._id || ''
+	let select='-receiptAdviceLineInfos'
 
 	if(_id=='') 
 		return error.param2(req,next)
 	dbModel.despatches_receipt_advice.findOne({_id:_id},select).exec((err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var data=doc.toJSON()
+				let data=doc.toJSON()
 				cb(data)
 			}
 		}
@@ -137,7 +137,7 @@ function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
 
-	var data = req.body || {}
+	let data = req.body || {}
 
 	if(data.despatch=='')
 		return next({code:'WRONG_VALUE',message:'despatch elemani bos olamaz'})
@@ -152,8 +152,8 @@ function put(dbModel, member, req, res, next, cb){
 				dbModel.despatches_receipt_advice.findOne({ _id: data._id},(err,doc)=>{
 					if(dberr(err,next)){
 						if(dbnull(doc,next)){
-							var doc2 = Object.assign(doc, data)
-							var newDoc = new dbModel.despatches_receipt_advice(doc2)
+							let doc2 = Object.assign(doc, data)
+							let newDoc = new dbModel.despatches_receipt_advice(doc2)
 							if(!epValidateSync(newDoc,next))
 								return
 							newDoc.save((err, newDoc2)=>{
@@ -177,7 +177,7 @@ function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
 	
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 
 	dbModel.despatches_receipt_advice.findOne({_id:data._id},(err,doc)=>{

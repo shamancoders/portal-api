@@ -15,7 +15,7 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)
+	let options={page: (req.query.page || 1)
 	}
 
 	options.sort={_id:-1}
@@ -23,7 +23,7 @@ function getList(dbModel, member, req, res, next, cb){
 		options['limit']=req.query.pageSize || req.query.limit
 
 
-	var filter = {memberId:member._id,dbId:dbModel._id,createdDate:{$gte:(new Date()).addDays(-90)}}
+	let filter = {memberId:member._id,dbId:dbModel._id,createdDate:{$gte:(new Date()).addDays(-90)}}
 
 	if((req.query.isRead || '')!='')
 		filter['isRead']=req.query.isRead
@@ -36,7 +36,7 @@ function getList(dbModel, member, req, res, next, cb){
 }
 
 function getOne(dbModel, member, req, res, next, cb){
-	var filter={_id:req.params.param1, memberId:member._id, dbId:dbModel._id}
+	let filter={_id:req.params.param1, memberId:member._id, dbId:dbModel._id}
 	
 	db.notifications.findOne(filter,(err,doc)=>{
 		if(dberr(err,next)){

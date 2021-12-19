@@ -34,8 +34,8 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function copy(dbModel, member, req, res, next, cb){
-	var id=req.params.param2 || req.body['id'] || req.query.id || ''
-	var newName=req.body['newName'] || req.body['name'] || ''
+	let id=req.params.param2 || req.body['id'] || req.query.id || ''
+	let newName=req.body['newName'] || req.body['name'] || ''
 
 	if(id=='')
 		return error.param2(req,next)
@@ -43,7 +43,7 @@ function copy(dbModel, member, req, res, next, cb){
 	dbModel.account_groups.findOne({ _id: id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var data=doc.toJSON()
+				let data=doc.toJSON()
 				data._id=undefined
 				delete data._id
 				if(newName!=''){
@@ -52,13 +52,13 @@ function copy(dbModel, member, req, res, next, cb){
 					data.name +=' copy'
 				}
 
-				var newDoc = new dbModel.account_groups(data)
+				let newDoc = new dbModel.account_groups(data)
 				if(!epValidateSync(newDoc,next))
 					return
 
 				newDoc.save((err, newDoc2)=>{
 					if(dberr(err,next)){
-						var obj=newDoc2.toJSON()
+						let obj=newDoc2.toJSON()
 						obj['newName']=data.name
 						cb(obj)
 					}
@@ -69,7 +69,7 @@ function copy(dbModel, member, req, res, next, cb){
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1),
+	let options={page: (req.query.page || 1),
 		populate:[
 		{path:'account',select:'_id accountCode name'},
 		{path:'salesAccount',select:'_id accountCode name'},
@@ -86,7 +86,7 @@ function getList(dbModel, member, req, res, next, cb){
 	if((req.query.pageSize || req.query.limit))
 		options['limit']=req.query.pageSize || req.query.limit
 
-	var filter = {}
+	let filter = {}
 
 	if((req.query.name || '')!='')
 		filter['name']={ '$regex': '.*' + req.query.name + '.*' ,'$options': 'i' }
@@ -103,8 +103,8 @@ function getList(dbModel, member, req, res, next, cb){
 
 function getIdList(dbModel, member, req, res, next, cb){
 	
-	var filter = {}
-	var idList=req.params.param1.replaceAll(';',',').split(',')
+	let filter = {}
+	let idList=req.params.param1.replaceAll(';',',').split(',')
 
 	filter['_id']={$in:idList}
 
@@ -118,7 +118,7 @@ function getIdList(dbModel, member, req, res, next, cb){
 function getOne(dbModel, member, req, res, next, cb){
 	dbModel.account_groups.findOne({_id:req.params.param1}).exec((err,doc)=>{
 		if(dberr(err,next)){
-			var obj=clone(doc.toJSON())
+			let obj=clone(doc.toJSON())
 			if(obj.account){
 				obj['pop_account']=obj['account']
 				obj['account']=doc.account._id
@@ -174,12 +174,12 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 
 	data=veriTemizle(data)
 
-	var newDoc = new dbModel.account_groups(data)
+	let newDoc = new dbModel.account_groups(data)
 	if(!epValidateSync(newDoc,next))
 		return
 
@@ -194,7 +194,7 @@ function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param2(req,next)
 
-	var data=req.body || {}
+	let data=req.body || {}
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
 
@@ -203,8 +203,8 @@ function put(dbModel, member, req, res, next, cb){
 	dbModel.account_groups.findOne({ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.account_groups(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new dbModel.account_groups(doc2)
 				if(!epValidateSync(newDoc,next))
 					return
 
@@ -238,7 +238,7 @@ function veriTemizle(data){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.account_groups.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

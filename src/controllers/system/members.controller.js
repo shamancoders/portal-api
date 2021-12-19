@@ -20,13 +20,13 @@ module.exports = (member, req, res, next, cb)=>{
 }
 
 function getList(member,req,res,next,cb){
-	var options={
+	let options={
 		page: (req.query.page || 1)
 	}
 	if(!req.query.page){
 		options.limit=50000
 	}
-	var filter = {}
+	let filter = {}
 	if(req.query.username){
 		filter['username']={ $regex: '.*' + req.query.username + '.*' ,$options: 'i' }
 	}
@@ -46,9 +46,9 @@ function getOne(member,req,res,cb){
 }
 
 function post(member,req,res,cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	
-	var newDoc = new db.portal_members(data)
+	let newDoc = new db.portal_members(data)
 	if(!epValidateSync(newDoc,next))
 		return
 	newDoc.save(function(err, newDoc2) {
@@ -65,7 +65,7 @@ function put(member,req,res,next,cb){
 	if(req.params.param1==undefined){
 		cb({success: false,error: {code: 'WRONG_PARAMETER', message: 'Para metre hatali'}})
 	}else{
-		var data = req.body || {}
+		let data = req.body || {}
 		
 		data._id = req.params.param1
 		data.modifiedDate = new Date()
@@ -74,8 +74,8 @@ function put(member,req,res,next,cb){
 			if(dberr(err,next))
 				if(dbnull(doc,next)){
 					
-					var doc2 = Object.assign(doc, data)
-					var newDoc = new db.portal_members(doc2)
+					let doc2 = Object.assign(doc, data)
+					let newDoc = new db.portal_members(doc2)
 					if(!epValidateSync(newDoc,next))
 					return
 					newDoc.save(function(err, newDoc2) {
@@ -94,7 +94,7 @@ function deleteItem(member,req,res,next,cb){
 	if(req.params.param1==undefined)
 		error.param1(req)
 	
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	db.portal_members.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

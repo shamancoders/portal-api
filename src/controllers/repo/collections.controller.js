@@ -16,9 +16,9 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var keys=[]
+	let keys=[]
 	console.log(`req.query.search :`,req.query.search )
-	var forbiddens=['_id', 'name', 'conn', 'dbName', 'userDb', 'settings', 'recycle', 'actions','variables']
+	let forbiddens=['_id', 'name', 'conn', 'dbName', 'userDb', 'settings', 'recycle', 'actions','variables']
 	Object.keys(dbModel).forEach((e)=>{
 		bFound=false
 		forbiddens.forEach((f)=>{
@@ -41,7 +41,7 @@ function getList(dbModel, member, req, res, next, cb){
 			}
 			
 	})
-	var resp={
+	let resp={
 		docs:[],
 		page:1,
 		pageSize:50000,

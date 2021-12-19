@@ -25,7 +25,7 @@ module.exports = (member, req, res, next, cb)=>{
 
 
 function getOne(member,req,res,next,cb){
-	var filter={_id:req.params.param1}
+	let filter={_id:req.params.param1}
 
 	db.portal_members.findOne(filter).select('_id username name lastName').exec((err,doc)=>{
 		if(dberr(err, next)){
@@ -38,10 +38,10 @@ function getOne(member,req,res,next,cb){
 
 function getList(member,req,res,next,cb){
 
-	var options={ page: 1, limit:5, select:'_id username name lastName'}
+	let options={ page: 1, limit:5, select:'_id username name lastName'}
 	
 
-	var filter={
+	let filter={
 		_id:{$ne:member._id},
 		passive:false		
 	}
@@ -63,8 +63,8 @@ function getList(member,req,res,next,cb){
 
 function getIdList(member, req, res, next, cb){
 	
-	var filter = {}
-	var idList=req.params.param1.replaceAll(';',',').split(',')
+	let filter = {}
+	let idList=req.params.param1.replaceAll(';',',').split(',')
 
 	filter['_id']={$in:idList}
 

@@ -42,14 +42,14 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: Number(req.query.page || 1)
+	let options={page: Number(req.query.page || 1)
 		,limit:10
 	}
 	if((req.query.pageSize || req.query.limit)){
 		options.limit=req.query.pageSize || req.query.limit
 	}
 
-	var filter = {}
+	let filter = {}
 
 	options.sort={
 		zDate:1
@@ -109,7 +109,7 @@ function getList(dbModel, member, req, res, next, cb){
 									e.zDate=''
 								}
 								if(e.data){
-									var str=`ZNo:${e.data.ZNo}, Tarih:${e.data.ZDate.substr(0,10)} ${e.data.ZTime} , Toplam:${e.data.GunlukToplamTutar} Kdv:${e.data.GunlukToplamKDV}`
+									let str=`ZNo:${e.data.ZNo}, Tarih:${e.data.ZDate.substr(0,10)} ${e.data.ZTime} , Toplam:${e.data.GunlukToplamTutar} Kdv:${e.data.GunlukToplamKDV}`
 									e.data=str
 								}else{
 									e.data=''
@@ -128,13 +128,13 @@ function getList(dbModel, member, req, res, next, cb){
 
 
 function rapor1(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)
+	let options={page: (req.query.page || 1)
 	}
 	if((req.query.pageSize || req.query.limit))
 		options.limit=req.query.pageSize || req.query.limit
 	
 
-	var filter = {}
+	let filter = {}
 
 	if(req.query.date1)
 		filter['zDate']={$gte:(new Date(req.query.date1))}
@@ -147,7 +147,7 @@ function rapor1(dbModel, member, req, res, next, cb){
 		}
 	}
 
-	var aggregateGroup={ 
+	let aggregateGroup={ 
 		$group: {
 			_id:'$posDevice',
 			posDevice:{$first:'$posDevice'},
@@ -177,19 +177,19 @@ function rapor1(dbModel, member, req, res, next, cb){
 		if(dberr(err,next)){
 			filter_location(dbModel,req,filter,(err,filter)=>{
 				if(dberr(err,next)){
-					var aggregate=[]
+					let aggregate=[]
 					if(filter!={}){
 						aggregate=[{$match:filter},aggregateGroup]
 					}else{
 						aggregate=[aggregateGroup]
 					}
-					var myAggregate = dbModel.pos_device_zreports.aggregate(aggregate)
+					let myAggregate = dbModel.pos_device_zreports.aggregate(aggregate)
 					dbModel.pos_device_zreports.aggregatePaginate(myAggregate,options,(err, resp)=>{
 						if(dberr(err,next)){
 							if(resp.docs.length==0){
 								return cb(resp)
 							}
-							var populate={
+							let populate={
 								path:'posDevice',
 								select:'_id location service deviceSerialNo deviceModel',
 								populate:[
@@ -212,13 +212,13 @@ function rapor1(dbModel, member, req, res, next, cb){
 }
 
 function rapor2(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)}
+	let options={page: (req.query.page || 1)}
 
 	if((req.query.pageSize || req.query.limit)){
 		options.limit=req.query.pageSize || req.query.limit
 	}
 
-	var filter = {}
+	let filter = {}
 
 	if(req.query.date1)
 		filter['zDate']={$gte:(new Date(req.query.date1))}
@@ -233,7 +233,7 @@ function rapor2(dbModel, member, req, res, next, cb){
 
 	filter_location(dbModel,req,filter,(err,filter)=>{
 		if(dberr(err,next)){
-			var aggregate=[
+			let aggregate=[
 			{
 				$match:filter
 			},
@@ -278,7 +278,7 @@ function rapor2(dbModel, member, req, res, next, cb){
 
 			dbModel.pos_device_zreports.aggregate(aggregate,(err,docs)=>{
 				if(dberr(err,next)){
-					var resp={
+					let resp={
 						docs:docs,
 						page:1,
 						pageSize:50000,
@@ -288,7 +288,7 @@ function rapor2(dbModel, member, req, res, next, cb){
 					if(resp.docs.length==0){
 						return cb(resp)
 					}
-					var populate={
+					let populate={
 						path:'location',
 						model: 'locations',
 						select:'_id name'
@@ -332,9 +332,9 @@ function filter_location(dbModel,req,filter,cb){
 		dbModel.pos_devices.find({ location: (req.query.location || req.query['posDevice.location'] ||  req.query['posDevice.location._id']) },(err,posDeviceDocs)=>{
 			if(!err){
 				if(filter['$or']!=undefined){
-					var newOR=[]
+					let newOR=[]
 					filter['$or'].forEach((e)=>{
-						var bfound= false
+						let bfound= false
 						posDeviceDocs.forEach((e2)=>{ 
 							if(e['posDevice'].toString()==e2._id.toString()){
 								bfound=true
@@ -364,7 +364,7 @@ function filter_location(dbModel,req,filter,cb){
 }
 
 function getOne(dbModel, member, req, res, next, cb){
-	var populate={
+	let populate={
 		path:'posDevice',
 		select:'_id location service deviceSerialNo deviceModel',
 		populate:[
@@ -382,10 +382,10 @@ function getOne(dbModel, member, req, res, next, cb){
 
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 
-	var newDoc = new dbModel.pos_device_zreports(data)
+	let newDoc = new dbModel.pos_device_zreports(data)
 	if(!epValidateSync(newDoc,next))
 		return
 	newDoc.save((err, newDoc2)=>{
@@ -398,15 +398,15 @@ function post(dbModel, member, req, res, next, cb){
 function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
 
 	dbModel.pos_device_zreports.findOne({ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.pos_device_zreports(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new dbModel.pos_device_zreports(doc2)
 				if(!epValidateSync(newDoc,next))
 					return
 				newDoc.save((err, newDoc2)=>{
@@ -422,7 +422,7 @@ function put(dbModel, member, req, res, next, cb){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.pos_device_zreports.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
@@ -432,16 +432,16 @@ function deleteItem(dbModel, member, req, res, next, cb){
 }
 
 function transfer(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	if(data.list==undefined)
 		return next({code: 'ERROR', message: 'list is required.'})
 
-	var populate={
+	let populate={
 		path:'posDevice',
 		select:'_id location service deviceSerialNo deviceModel',
 		populate:['location','service','localConnector']
 	}
-	var idList=[]
+	let idList=[]
 	data.list.forEach((e)=>{
 		if(e && typeof e === 'object' && e.constructor === Object){
 			if(e._id!=undefined){
@@ -455,15 +455,15 @@ function transfer(dbModel, member, req, res, next, cb){
 			idList.push(e)
 		}
 	})
-	var filter={status:{$nin:['transferred','pending']},_id:{$in:idList}}
+	let filter={status:{$nin:['transferred','pending']},_id:{$in:idList}}
 	dbModel.pos_device_zreports.find(filter).populate(populate).exec((err,docs)=>{
 		if(dberr(err,next)){
-			var index=0
+			let index=0
 			function pushTask(cb){
 				if(index>=docs.length){
 					cb(null)
 				}else{
-					var taskdata={taskType:'connector_transfer_zreport',collectionName:'pos_device_zreports',documentId:docs[index]._id,document:docs[index]}
+					let taskdata={taskType:'connector_transfer_zreport',collectionName:'pos_device_zreports',documentId:docs[index]._id,document:docs[index]}
 					taskHelper.newTask(dbModel,taskdata,(err,taskDoc)=>{
 						if(!err){
 							switch(taskDoc.status){
@@ -499,7 +499,7 @@ function transfer(dbModel, member, req, res, next, cb){
 			}
 			pushTask((err)=>{
 				if(dberr(err,next)){
-					var resp=[]
+					let resp=[]
 
 					docs.forEach((e)=>{
 						resp.push(e._id.toString())
@@ -513,11 +513,11 @@ function transfer(dbModel, member, req, res, next, cb){
 
 
 function rollback(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	if(data.list==undefined)
 		return next({code: 'ERROR', message: 'list is required.'})
 
-	var idList=[]
+	let idList=[]
 	data.list.forEach((e)=>{
 		if(e && typeof e === 'object' && e.constructor === Object){
 			if(e._id!=undefined){
@@ -531,7 +531,7 @@ function rollback(dbModel, member, req, res, next, cb){
 			idList.push(e)
 		}
 	})
-	var filter={status:{$ne:''},_id:{$in:idList}}
+	let filter={status:{$ne:''},_id:{$in:idList}}
 	dbModel.pos_device_zreports.updateMany(filter,{$set:{status:''}},{multi:true},(err,resp)=>{
 		if(dberr(err,next)){
 			cb(resp)
@@ -542,11 +542,11 @@ function rollback(dbModel, member, req, res, next, cb){
 }
 
 function setTransferred(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	if(data.list==undefined)
 		return next({code: 'ERROR', message: 'list is required.'})
 
-	var idList=[]
+	let idList=[]
 	data.list.forEach((e)=>{
 		if(e && typeof e === 'object' && e.constructor === Object){
 			if(e._id!=undefined){
@@ -560,7 +560,7 @@ function setTransferred(dbModel, member, req, res, next, cb){
 			idList.push(e)
 		}
 	})
-	var filter={status:{$ne:'transferred'},_id:{$in:idList}}
+	let filter={status:{$ne:'transferred'},_id:{$in:idList}}
 	dbModel.pos_device_zreports.updateMany(filter,{$set:{status:'transferred'}},{multi:true},(err,resp)=>{
 		if(dberr(err,next)){
 			cb(resp)

@@ -15,7 +15,7 @@ module.exports = (member, req, res, next, cb)=>{
 }
 
 function getList(member,req,res,next,cb){
-	var options={page: (req.query.page || 1)
+	let options={page: (req.query.page || 1)
 	}
 
 	if((req.query.pageSize || req.query.limit)){
@@ -23,7 +23,7 @@ function getList(member,req,res,next,cb){
 	}
 
 
-	var filter = {}
+	let filter = {}
 
 	if((req.query.search || '').trim()!=''){
 		filter['$or']=[

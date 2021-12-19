@@ -25,7 +25,7 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)
+	let options={page: (req.query.page || 1)
 		,limit:10
 	}
 	
@@ -33,7 +33,7 @@ function getList(dbModel, member, req, res, next, cb){
 		options['limit']=req.query.pageSize || req.query.limit
 	}
 
-	var filter = {}
+	let filter = {}
 
 	if((req.query.name || '')!=''){
 		if(req.query.name!='*' && req.query.name!=' ')
@@ -72,10 +72,10 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 
-	var newDoc = new dbModel.locations(data)
+	let newDoc = new dbModel.locations(data)
 	if(!epValidateSync(newDoc,next))
 		return
 
@@ -90,15 +90,15 @@ function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
 
-	var data=req.body || {}
+	let data=req.body || {}
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
 
 	dbModel.locations.findOne({ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.locations(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new dbModel.locations(doc2)
 				if(!epValidateSync(newDoc,next))
 					return
 
@@ -115,7 +115,7 @@ function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
 	
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.locations.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

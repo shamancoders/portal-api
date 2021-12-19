@@ -25,7 +25,7 @@ module.exports = (member, req, res, next, cb)=>{
 
 function getOne(member,req,res,next,cb){
 
-	var filter = {deleted:false}
+	let filter = {deleted:false}
 	filter._id=req.params.param1
 	db.dbdefines.findOne(filter, function(err, doc) {
 		if(dberr(err, next)){
@@ -43,7 +43,7 @@ function getOne(member,req,res,next,cb){
 
 
 function getList(member,req,res,next,cb){
-	var options={page: (req.query.page || 1) }
+	let options={page: (req.query.page || 1) }
 	if((req.query.pageSize || req.query.limit)){
 		options.limit=req.query.pageSize || req.query.limit
 	}
@@ -51,7 +51,7 @@ function getList(member,req,res,next,cb){
 		{path:'owner', select:'_id username name lastName'},
 		{path:'authorizedMembers.memberId', select:'_id username name lastName'}
 	]
-	var filter ={ 
+	let filter ={ 
 		deleted:false, 
 		$or:[
 			{owner:member._id},
@@ -62,7 +62,7 @@ function getList(member,req,res,next,cb){
 	db.dbdefines.paginate(filter,options,(err, resp)=>{
 		if(dberr(err, next)){
 
-			var index=0
+			let index=0
 
 			function calistir(cb){
 				if(index>=resp.docs.length)
@@ -85,7 +85,7 @@ function getList(member,req,res,next,cb){
 }
 
 function post(member,req,res,next,cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	if(!data.hasOwnProperty("dbName"))
 		return next({code: "ERROR", message: "dbName is required."})
 
@@ -106,7 +106,7 @@ function post(member,req,res,next,cb){
 			if(foundDoc!=null){
 				return next({code: `DB_ALREADY_EXISTS`, message: `Database '${data.dbName}' already exists.`})
 			}else{
-				var newDoc = new db.dbdefines(data)
+				let newDoc = new db.dbdefines(data)
 				newDoc.save(function(err, newDoc2) {
 					if (!err) {
 						newDoc2.userDb=`userdb-${newDoc2._id}`
@@ -141,7 +141,7 @@ function put(member,req,res,next,cb){
 	if(req.params.param1==undefined)
 		error.param1(req)
 	
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	
 	data.modifiedDate = new Date()
@@ -149,8 +149,8 @@ function put(member,req,res,next,cb){
 		if(dberr(err, next))
 			if(dbnull(doc, next)){
 
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new db.dbdefines(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new db.dbdefines(doc2)
 				newDoc.save((err, newDoc2)=>{
 					if(dberr(err, next))
 						cb(newDoc2)
@@ -163,7 +163,7 @@ function deleteItem(member,req,res,next,cb){
 	if(req.params.param1==undefined)
 		error.param1(req)
 
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 
 	db.dbdefines.findOne({ _id: data._id, owner : member._id, deleted:false}, (err, doc)=>{

@@ -48,7 +48,7 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 function approveDecline(status, dbModel,member,req,res,next, cb){
 	if(req.params.param2==undefined)
 		return error.param2(req,next)
-	var data = req.body || {}
+	let data = req.body || {}
 
 	data._id = req.params.param2
 	data.modifiedDate = new Date()
@@ -67,14 +67,14 @@ function approveDecline(status, dbModel,member,req,res,next, cb){
 }
 
 function salesOrders(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1) ,
+	let options={page: (req.query.page || 1) ,
 
 	}
 
 	if((req.query.pageSize || req.query.limit))
 		options['limit']=req.query.pageSize || req.query.limit
 
-	var aggregateProject=[
+	let aggregateProject=[
 	{
 		$unwind:'$orderLine'
 	},
@@ -112,7 +112,7 @@ function salesOrders(dbModel, member, req, res, next, cb){
 		aggregateProject[2]['$match']['_id']={ $in: [ObjectId(req.query.orderLineId)]}
 	}
 
-	var myAggregate = dbModel.orders.aggregate(aggregateProject)
+	let myAggregate = dbModel.orders.aggregate(aggregateProject)
 
 	dbModel.orders.aggregatePaginate(myAggregate,options,(err, resp)=>{
 		if(dberr(err,next)){
@@ -122,7 +122,7 @@ function salesOrders(dbModel, member, req, res, next, cb){
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1), 
+	let options={page: (req.query.page || 1), 
 		select:'-process',
 		populate:[
 		{path:'item',select:'_id name description'},
@@ -134,7 +134,7 @@ function getList(dbModel, member, req, res, next, cb){
 		options['limit']=req.query.pageSize || req.query.limit
 
 
-	var filter = {}
+	let filter = {}
 
 	if((req.query.productionId || req.query.productionNo || req.query.no || '')!='')
 		filter['productionId']={ '$regex': '.*' + (req.query.productionId || req.query.productionNo || req.query.no) + '.*' , '$options': 'i' }
@@ -174,16 +174,16 @@ function applyOtherFilters(dbModel,req,mainFilter,cb){
 
 	function filter_item(filter,cb){
 		if((req.query.itemName || '')!='' || (req.query.item || req.query.itemId || '')!=''){
-			var itemFilter={ 'name.value': { $regex: '.*' + req.query.itemName + '.*' ,$options: 'i' }}
+			let itemFilter={ 'name.value': { $regex: '.*' + req.query.itemName + '.*' ,$options: 'i' }}
 			if((req.query.item || req.query.itemId || '')!=''){
 				itemFilter={_id:(req.query.item || req.query.itemId)}
 			}
 			dbModel.items.find(itemFilter,(err,itemList)=>{
 				if(!err){
 					if(filter['$or']!=undefined){
-						var newOR=[]
+						let newOR=[]
 						filter['$or'].forEach((e)=>{
-							var bfound= false
+							let bfound= false
 							fiches.forEach((e2)=>{ 
 								if(e['item'].toString()==e2._id.toString()){
 									bfound=true
@@ -218,7 +218,7 @@ function applyOtherFilters(dbModel,req,mainFilter,cb){
 }
 
 function getOne(dbModel, member, req, res, next, cb){
-	var populate=[
+	let populate=[
 	{ path:'process.station', select:'_id name'},
 	{ path:'process.step', select:'_id name useMaterial'},
 	{ path:'process.machines.machine', select:'_id name'},
@@ -237,7 +237,7 @@ function getOne(dbModel, member, req, res, next, cb){
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
 				if(!req.query.print){
-					var populate2=[
+					let populate2=[
 					{path:'docLine.item', select:'_id name description unitPacks tracking passive'},
 					{path:'docLine.pallet', select:'_id name'}
 					]
@@ -255,7 +255,7 @@ function getOne(dbModel, member, req, res, next, cb){
                 }else{
                 	doc.populate('item').execPopulate((err,doc2)=>{
                 		if(dberr(err,next)){
-                			var designId=req.query.designId || ''
+                			let designId=req.query.designId || ''
                 			printHelper.print(dbModel,'mrp-production-order',doc2, designId, (err,html)=>{
                 				if(!err){
                 					cb({file: {data:html}})
@@ -272,18 +272,18 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 	verileriDuzenle(dbModel,data,(err,data)=>{
 		documentHelper.yeniUretimNumarasi(dbModel,data,(err,data)=>{
-			var newDoc = new dbModel.production_orders(data)
+			let newDoc = new dbModel.production_orders(data)
 			if(!epValidateSync(newDoc,next))
 		return
 
 			newDoc=calculateMaterialSummary(newDoc)
 			newDoc.save((err, newDoc2)=>{
 				if(dberr(err,next)){
-					var populate=[
+					let populate=[
 					{ path:'process.station', select:'_id name'},
 					{ path:'process.step', select:'_id name useMaterial'},
 					{ path:'process.machines.machine', select:'_id name'},
@@ -307,7 +307,7 @@ function post(dbModel, member, req, res, next, cb){
 function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
@@ -317,15 +317,15 @@ function put(dbModel, member, req, res, next, cb){
 				if(dbnull(doc,next)){
 					doc.orderLineReference=[]
 					doc.process=[]
-					var doc2 = Object.assign(doc, data)
-					var newDoc = new dbModel.production_orders(doc2)
+					let doc2 = Object.assign(doc, data)
+					let newDoc = new dbModel.production_orders(doc2)
 					if(!epValidateSync(newDoc,next))
 					return
 
 					newDoc=calculateMaterialSummary(newDoc)
 					newDoc.save((err, newDoc2)=>{
 						if(dberr(err,next)){
-							var populate=[
+							let populate=[
 							{ path:'process.station', select:'_id name'},
 							{ path:'process.step', select:'_id name useMaterial'},
 							{ path:'process.machines.machine', select:'_id name'},
@@ -354,7 +354,7 @@ function calculateMaterialSummary(doc){
 	doc.outputSummary=[]
 	doc.process.forEach((e)=>{
 		e.input.forEach((e1)=>{
-			var bFound=false
+			let bFound=false
 			doc.materialSummary.forEach((e2)=>{
 				if(e2.item==e1.item){
 					bFound=true
@@ -367,7 +367,7 @@ function calculateMaterialSummary(doc){
 			}
 		})
 		e.output.forEach((e1)=>{
-			var bFound=false
+			let bFound=false
 			doc.outputSummary.forEach((e2)=>{
 				if(e2.item==e1.item){
 					bFound=true
@@ -381,7 +381,7 @@ function calculateMaterialSummary(doc){
 		})
 	})
 
-	var toplamAgirlik=doc.totalWeight || 0
+	let toplamAgirlik=doc.totalWeight || 0
 
 	if(toplamAgirlik>0){
 		doc.materialSummary.forEach((e)=>{
@@ -436,7 +436,7 @@ function verileriDuzenle(dbModel,data,cb){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.production_orders.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

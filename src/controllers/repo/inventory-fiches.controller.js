@@ -33,8 +33,8 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function copy11(dbModel, member, req, res, next, cb){
-	var id=req.params.param2 || req.body['id'] || req.query.id || ''
-	var newName=req.body['newName'] || req.body['name'] || ''
+	let id=req.params.param2 || req.body['id'] || req.query.id || ''
+	let newName=req.body['newName'] || req.body['name'] || ''
 
 	if(id=='')
 		error.param2(req,next)
@@ -42,7 +42,7 @@ function copy11(dbModel, member, req, res, next, cb){
 	dbModel.inventory_fiches.findOne({ _id: id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var data=doc.toJSON()
+				let data=doc.toJSON()
 				data._id=undefined
 				delete data._id
 				if(newName!=''){
@@ -53,14 +53,14 @@ function copy11(dbModel, member, req, res, next, cb){
 				data.createdDate=new Date()
 				data.modifiedDate=new Date()
 
-				var newDoc = new dbModel.items(data)
+				let newDoc = new dbModel.items(data)
 				if(!epValidateSync(newDoc,next))
 					return
 				newDoc.save((err, newDoc2)=>{
 					if(dberr(err,next)){
 						receteleriKaydet(dbModel,doc,newDoc2,(err,newDoc3)=>{
 							if(!err){
-								var obj=newDoc3.toJSON()
+								let obj=newDoc3.toJSON()
 								obj['newName']=data.name.value
 								cb(obj)
 							}else{
@@ -78,7 +78,7 @@ function copy11(dbModel, member, req, res, next, cb){
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1),
+	let options={page: (req.query.page || 1),
 		populate:[
 		{path:'location',select:'_id locationName'},
 		{path:'location2',select:'_id locationName'},
@@ -88,7 +88,7 @@ function getList(dbModel, member, req, res, next, cb){
 	if((req.query.pageSize || req.query.limit))
 		options['limit']=req.query.pageSize || req.query.limit
 
-	var filter = {}
+	let filter = {}
 
 
 	if((req.query.date1 || '')!='')
@@ -132,8 +132,8 @@ function getList(dbModel, member, req, res, next, cb){
 
 function getIdList(dbModel, member, req, res, next, cb){
 	
-	var filter = {}
-	var idList=req.params.param1.replaceAll(';',',').split(',')
+	let filter = {}
+	let idList=req.params.param1.replaceAll(';',',').split(',')
 
 	filter['_id']={$in:idList}
 
@@ -145,7 +145,7 @@ function getIdList(dbModel, member, req, res, next, cb){
 }
 
 function getOne(dbModel, member, req, res, next, cb){
-	var populate=[
+	let populate=[
 	{path:'docLine.item', select:'_id name description unitPacks tracking passive'},
 	{path:'docLine.pallet', select:'_id name'}
 	]
@@ -160,7 +160,7 @@ function getOne(dbModel, member, req, res, next, cb){
   }
 
   function post(dbModel, member, req, res, next, cb){
-  	var data = req.body || {}
+  	let data = req.body || {}
   	if((data.account || '')=='')
   		data.account=undefined
   	data._id=undefined
@@ -172,7 +172,7 @@ function getOne(dbModel, member, req, res, next, cb){
   	}
 
   	uretimFisiKontrolEt(dbModel,data,(err,data)=>{
-  		var yeniDoc = new dbModel.inventory_fiches(data)
+  		let yeniDoc = new dbModel.inventory_fiches(data)
   		documentHelper.yeniStokFisNumarasi(dbModel,yeniDoc,(err11,newDoc)=>{
   			if(!epValidateSync(newDoc,next))
   				return
@@ -189,7 +189,7 @@ function getOne(dbModel, member, req, res, next, cb){
   	if(req.params.param1==undefined)
   		return error.param1(req, next)
 
-  	var data=req.body || {}
+  	let data=req.body || {}
   	data._id = req.params.param1
   	data.modifiedDate = new Date()
   	data=fazlaliklariTemizleDuzelt(data)
@@ -202,8 +202,8 @@ function getOne(dbModel, member, req, res, next, cb){
   		dbModel.inventory_fiches.findOne({ _id: data._id},(err,doc)=>{
   			if(dberr(err,next)){
   				if(dbnull(doc,next)){
-  					var doc2 = Object.assign(doc, data)
-  					var newDoc = new dbModel.inventory_fiches(doc2)
+  					let doc2 = Object.assign(doc, data)
+  					let newDoc = new dbModel.inventory_fiches(doc2)
   					if(!epValidateSync(newDoc,next))
   						return
 
@@ -232,7 +232,7 @@ function getOne(dbModel, member, req, res, next, cb){
 
   			if(data.docTypeCode=='URETIMECIKIS'){
   				data.docLine.forEach((e,index)=>{
-  					var bFound=false
+  					let bFound=false
   					proOrder.materialSummary.forEach((e2)=>{
   						if(e.item._id.toString()==e2.item.toString()){
   							bFound=true
@@ -245,7 +245,7 @@ function getOne(dbModel, member, req, res, next, cb){
   				})
   			}else if(data.docTypeCode=='URETIMDENGIRIS'){
   				data.docLine.forEach((e,index)=>{
-  					var bFound=false
+  					let bFound=false
   					if(proOrder.item.toString()!=e.item._id.toString()){
   						proOrder.outputSummary.forEach((e2)=>{
   							if(e.item._id.toString()==e2.item.toString()){
@@ -317,7 +317,7 @@ function getOne(dbModel, member, req, res, next, cb){
   function deleteItem(dbModel, member, req, res, next, cb){
   	if(req.params.param1==undefined)
   		return error.param1(req, next)
-  	var data = req.body || {}
+  	let data = req.body || {}
   	data._id = req.params.param1
   	dbModel.inventory_fiches.removeOne(member,{ _id: data._id},(err,doc)=>{
   		if(dberr(err,next)){

@@ -27,8 +27,8 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function copy(dbModel, member, req, res, next, cb){
-	var id=req.params.param2 || req.body['id'] || req.query.id || ''
-	var newName=req.body['newName'] || req.body['name'] || ''
+	let id=req.params.param2 || req.body['id'] || req.query.id || ''
+	let newName=req.body['newName'] || req.body['name'] || ''
 
 	if(id=='')
 		return error.param2(req,next)
@@ -36,7 +36,7 @@ function copy(dbModel, member, req, res, next, cb){
 	dbModel.parties.findOne({ _id: id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var data=doc.toJSON()
+				let data=doc.toJSON()
 				data._id=undefined
 				delete data._id
 
@@ -49,13 +49,13 @@ function copy(dbModel, member, req, res, next, cb){
 				data.createdDate=new Date()
 				data.modifiedDate=new Date()
 
-				var newDoc = new dbModel.parties(data)
+				let newDoc = new dbModel.parties(data)
 				if(!epValidateSync(newDoc,next))
 					return
 
 				newDoc.save((err, newDoc2)=>{
 					if(dberr(err,next)){
-						var obj=newDoc2.toJSON()
+						let obj=newDoc2.toJSON()
 						obj['newName']=data.partyName.name.value
 						cb(obj)
 					} 
@@ -66,11 +66,11 @@ function copy(dbModel, member, req, res, next, cb){
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1)}
+	let options={page: (req.query.page || 1)}
 	if((req.query.pageSize || req.query.limit))
 		options['limit']=req.query.pageSize || req.query.limit
 
-	var filter = {partyType:{$in:['Vendor','Both']}}
+	let filter = {partyType:{$in:['Vendor','Both']}}
 
 
 	if((req.query.passive || '')!='')
@@ -126,13 +126,13 @@ function getOne(dbModel, member, req, res, next, cb){
 }
 
 function post(dbModel, member, req, res, next, cb){
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id=undefined
 
 	if((data.account || '')=='')
 		data.account=undefined
 
-	var newDoc = new dbModel.parties(data)
+	let newDoc = new dbModel.parties(data)
 	newDoc.partyType=newDoc.partyType || 'Vendor'
 	if(!epValidateSync(newDoc,next))
 		return
@@ -147,7 +147,7 @@ function post(dbModel, member, req, res, next, cb){
 function put(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data=req.body || {}
+	let data=req.body || {}
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
 
@@ -160,8 +160,8 @@ function put(dbModel, member, req, res, next, cb){
 				// if(doc.partyType!='Vendor' && doc.partyType!='Both' && doc.partyType!='Agency')
 				// 	return next({code: 'WRONG_PARAMETER', message: 'Yanlis partyType'})
 
-				var doc2 = Object.assign(doc, data)
-				var newDoc = new dbModel.parties(doc2)
+				let doc2 = Object.assign(doc, data)
+				let newDoc = new dbModel.parties(doc2)
 				if(!epValidateSync(newDoc,next))
 					return
 
@@ -178,7 +178,7 @@ function put(dbModel, member, req, res, next, cb){
 function deleteItem(dbModel, member, req, res, next, cb){
 	if(req.params.param1==undefined)
 		return error.param1(req, next)
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.parties.removeOne(member,{ _id: data._id},(err,doc)=>{
 		if(dberr(err,next)){

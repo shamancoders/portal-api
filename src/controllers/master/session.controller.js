@@ -223,8 +223,8 @@ function checkMember(member, req, res, next, cb) {
 
 function menuMixDatabases(menu, databases) {
 	databases.forEach((d) => {
-		var menu1 = clone(menu)
-		var menu2 = []
+		let menu1 = clone(menu)
+		let menu2 = []
 		menu1.forEach((e) => {
 			e = menuModule(e, d.owner.modules)
 			if(e != undefined) {
@@ -238,8 +238,8 @@ function menuMixDatabases(menu, databases) {
 }
 
 function menuMixOneDatabase(menu, database) {
-	var menu1 = clone(menu)
-	var menu2 = []
+	let menu1 = clone(menu)
+	let menu2 = []
 	menu1.forEach((e) => {
 		e = menuModule(e, (database.owner || {}).modules)
 		if(e != undefined) {
@@ -253,8 +253,8 @@ function menuMixOneDatabase(menu, database) {
 function menuModule(menu, modules) {
 	if(menu.nodes == undefined) {
 		if(menu.module != undefined) {
-			var dizi = menu.module.split('.')
-			var bShow = false
+			let dizi = menu.module.split('.')
+			let bShow = false
 			if(modules[dizi[0]]) {
 				if(dizi.length > 1) {
 					if(modules[dizi[0]][dizi[1]]) {
@@ -285,8 +285,8 @@ function menuModule(menu, modules) {
 			return menu
 		}
 	} else {
-		var bNodeVar = false
-		var nodes = []
+		let bNodeVar = false
+		let nodes = []
 		menu.nodes.forEach((e) => {
 			e = menuModule(e, modules)
 			if(e != undefined)

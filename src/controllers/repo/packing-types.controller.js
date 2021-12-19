@@ -28,8 +28,8 @@ module.exports = (dbModel, member, req, res, next, cb)=>{
 }
 
 function copy(dbModel, member, req, res, next, cb){
-	var id=req.params.param2 || req.body['id'] || req.query.id || ''
-	var newName=req.body['newName'] || req.body['name'] || ''
+	let id=req.params.param2 || req.body['id'] || req.query.id || ''
+	let newName=req.body['newName'] || req.body['name'] || ''
 
 	if(id=='')
 		return error.param1(req, next)
@@ -37,7 +37,7 @@ function copy(dbModel, member, req, res, next, cb){
 	dbModel.packing_types.findOne({ _id: id},(err,doc)=>{
 		if(dberr(err,next)){
 			if(dbnull(doc,next)){
-				var data=doc.toJSON()
+				let data=doc.toJSON()
 				data._id=undefined
 				delete data._id
 				if(newName!=''){
@@ -53,12 +53,12 @@ function copy(dbModel, member, req, res, next, cb){
 
 				data.createdDate=new Date()
 				data.modifiedDate=new Date()
-				var newDoc = new dbModel.packing_types(data)
+				let newDoc = new dbModel.packing_types(data)
 				if(!epValidateSync(newDoc,next))
 					return
 				newDoc.save((err, newDoc2)=>{
 					if(dberr(err,next)){
-						var obj=newDoc2.toJSON()
+						let obj=newDoc2.toJSON()
 						obj['newName']=data.name
 						cb(obj)
 					} 
@@ -69,13 +69,13 @@ function copy(dbModel, member, req, res, next, cb){
 }
 
 function getList(dbModel, member, req, res, next, cb){
-	var options={page: (req.query.page || 1),
+	let options={page: (req.query.page || 1),
 		sort:{name:1}
 	}
 	if(!req.query.page){
 		options.limit=50000
 	}
-	var filter = {}
+	let filter = {}
 
 	if((req.query.name || '')!=''){
 		filter['$or']=[
@@ -110,7 +110,7 @@ function getList(dbModel, member, req, res, next, cb){
 }
 
 function getOne(dbModel, member, req, res, next, cb){
-	var populate=[
+	let populate=[
 	{path:'content.item', select:'_id name unitPacks tracking passive'}
         // {path:'docLine.color', select:'_id name'}, //qwerty
         // {path:'docLine.pattern', select:'_id name'}, //qwerty
@@ -126,10 +126,10 @@ function getOne(dbModel, member, req, res, next, cb){
     }
 
     function post(dbModel, member, req, res, next, cb){
-    	var data = req.body || {}
+    	let data = req.body || {}
     	data._id=undefined
     	
-    	var newDoc = new dbModel.packing_types(data)
+    	let newDoc = new dbModel.packing_types(data)
     	if(!epValidateSync(newDoc,next))
 		return
 
@@ -145,7 +145,7 @@ function getOne(dbModel, member, req, res, next, cb){
     function put(dbModel, member, req, res, next, cb){
     	if(req.params.param1==undefined)
     		return error.param1(req, next)
-    	var data=req.body || {}
+    	let data=req.body || {}
     	data._id = req.params.param1
     	data.modifiedDate = new Date()
 
@@ -154,8 +154,8 @@ function getOne(dbModel, member, req, res, next, cb){
     			if(doc==null){
     				cb({success: false,error: {code: 'RECORD_NOT_FOUND', message: 'Kayit bulunamadi'}})
     			}else{
-    				var doc2 = Object.assign(doc, data)
-    				var newDoc = new dbModel.packing_types(doc2)
+    				let doc2 = Object.assign(doc, data)
+    				let newDoc = new dbModel.packing_types(doc2)
     				if(!epValidateSync(newDoc,next))
 					return
     				
@@ -177,7 +177,7 @@ function getOne(dbModel, member, req, res, next, cb){
     	if(req.params.param1==undefined){
     		cb({success: false,error: {code: 'WRONG_PARAMETER', message: 'Parametre hatali'}})
     	}else{
-    		var data = req.body || {}
+    		let data = req.body || {}
     		data._id = req.params.param1
     		dbModel.packing_types.removeOne(member,{ _id: data._id},(err,doc)=>{
     			if (!err) {

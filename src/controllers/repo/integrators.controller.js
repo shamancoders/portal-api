@@ -29,8 +29,8 @@ module.exports = (dbModel, member, req, res, next, cb) => {
 }
 
 function copy(dbModel, member, req, res, next, cb) {
-	var id = req.params.param2 || req.body['id'] || req.query.id || ''
-	var newName = req.body['newName'] || req.body['name'] || ''
+	let id = req.params.param2 || req.body['id'] || req.query.id || ''
+	let newName = req.body['newName'] || req.body['name'] || ''
 
 	if(id == '')
 		error.param2(req, next)
@@ -38,7 +38,7 @@ function copy(dbModel, member, req, res, next, cb) {
 	dbModel.integrators.findOne({ _id: id }, (err, doc) => {
 		if(dberr(err, next)) {
 			if(dbnull(doc, next)) {
-				var data = doc.toJSON()
+				let data = doc.toJSON()
 				data._id = undefined
 				delete data._id
 				if(newName != '') {
@@ -51,7 +51,7 @@ function copy(dbModel, member, req, res, next, cb) {
 				data.passive = true
 
 				saveFiles(dbModel, data, (err, data) => {
-					var newDoc = new dbModel.integrators(data)
+					let newDoc = new dbModel.integrators(data)
 					if(!epValidateSync(newDoc, next))
 						return
 					newDoc.isDefault = false
@@ -67,7 +67,7 @@ function copy(dbModel, member, req, res, next, cb) {
 }
 
 function getList(dbModel, member, req, res, next, cb) {
-	var options = {
+	let options = {
 		page: (req.query.page || 1)
 	}
 
@@ -77,7 +77,7 @@ function getList(dbModel, member, req, res, next, cb) {
 		options['limit'] = 50000
 	}
 
-	var filter = {}
+	let filter = {}
 	if((req.query.passive || '') != '')
 		filter['passive'] = req.query.passive
 
@@ -90,7 +90,7 @@ function getList(dbModel, member, req, res, next, cb) {
 }
 
 function getOne(dbModel, member, req, res, next, cb) {
-	var populate = [
+	let populate = [
 		{ path: 'invoice.xsltFiles', select: '_id name extension fileName data type size createdDate modifiedDate' },
 		{ path: 'despatch.xsltFiles', select: '_id name extension fileName data type size createdDate modifiedDate' },
 		{ path: 'order.xsltFiles', select: '_id name extension fileName data type size createdDate modifiedDate' },
@@ -107,11 +107,11 @@ function getOne(dbModel, member, req, res, next, cb) {
 }
 
 function post(dbModel, member, req, res, next, cb) {
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = undefined
 	data = cleanDataEmptyLocalConnector(data)
 	saveFiles(dbModel, data, (err, data) => {
-		var newDoc = new dbModel.integrators(data)
+		let newDoc = new dbModel.integrators(data)
 		if(!epValidateSync(newDoc, next))
 			return
 		newDoc.save((err, newDoc2) => {
@@ -132,7 +132,7 @@ function put(dbModel, member, req, res, next, cb) {
 	if(req.params.param1 == undefined)
 		return error.param1(req, next)
 
-	var data = req.body || {}
+	let data = req.body || {}
 
 	data._id = req.params.param1
 	data.modifiedDate = new Date()
@@ -194,13 +194,13 @@ function xsltKaydet(dbModel, xsltFiles, cb) {
 	if(xsltFiles.length == 0)
 		return cb(null, [])
 
-	var dizi = []
-	var index = 0
+	let dizi = []
+	let index = 0
 
 	function kaydet(cb) {
 		if(index >= xsltFiles.length)
 			return cb(null)
-		var data = {
+		let data = {
 			data: xsltFiles[index].data,
 			fileName: (xsltFiles[index].fileName || ''),
 			name: (xsltFiles[index].name || ''),
@@ -231,7 +231,7 @@ function xsltKaydet(dbModel, xsltFiles, cb) {
 							setTimeout(kaydet, 0, cb)
 						})
 					} else {
-						var newFile = new dbModel.files(data)
+						let newFile = new dbModel.files(data)
 						newFile.save((err, doc2) => {
 							if(!err) {
 								dizi.push(doc2._id)
@@ -248,7 +248,7 @@ function xsltKaydet(dbModel, xsltFiles, cb) {
 				}
 			})
 		} else {
-			var newFile = new dbModel.files(data)
+			let newFile = new dbModel.files(data)
 			newFile.save((err, doc2) => {
 				if(!err) {
 					dizi.push(doc2._id)
@@ -357,7 +357,7 @@ function deleteItem(dbModel, member, req, res, next, cb) {
 	if(req.params.param1 == undefined)
 		return error.param1(req, next)
 
-	var data = req.body || {}
+	let data = req.body || {}
 	data._id = req.params.param1
 	dbModel.integrators.removeOne(member, { _id: data._id }, (err, doc) => {
 		if(dberr(err, next))

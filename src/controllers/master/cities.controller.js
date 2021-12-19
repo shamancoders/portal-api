@@ -1,9 +1,9 @@
 module.exports = (member, req, res, next, cb)=>{
-	var province = req.body.province || req.query.province || req.body.provincename || req.query.provincename || ''
+	let province = req.body.province || req.query.province || req.body.provincename || req.query.provincename || ''
 	if (province == '') {
 		next('Sehir bos olamaz')
 	} else {
-		var sonuc = []
+		let sonuc = []
 		cities.forEach((e)=>{
 			if(e[1]==province)
 				sonuc.push(e[2])
