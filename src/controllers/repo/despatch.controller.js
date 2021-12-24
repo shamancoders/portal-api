@@ -385,6 +385,74 @@ function getDespatchList(ioType, dbModel, member, req, res, next, cb){
 		],
 		
 		select:'_id ioType eIntegrator profileId ID uuid issueDate issueTime despatchAdviceTypeCode lineCountNumeric despatchLine localDocumentId deliveryCustomerParty despatchSupplierParty receiptAdvice despatchStatus despatchErrors localStatus localErrors',
+		sort :{ _id:-1}
+		// sort:{'issueDate.value':'desc' , 'ID.value':'desc'}
+	}
+
+	if((req.query.pageSize || req.query.limit))
+		options['limit']=req.query.pageSize || req.query.limit
+
+	// var filter = {}
+	let filter = {ioType:ioType}
+
+	if(req.query.eIntegrator)
+		filter['eIntegrator']=req.query.eIntegrator
+
+	if((req.query.despatchNo || req.query.ID || req.query['ID.value'] || '')!=''){
+		if(filter['$or']==undefined)
+			filter['$or']=[]
+		filter['$or'].push({'ID.value':{ '$regex': '.*' + req.query.despatchNo || req.query.ID || req.query['ID.value'] + '.*' , '$options': 'i' }})
+		filter['$or'].push({'localDocumentId':{ '$regex': '.*' + req.query.despatchNo || req.query.ID || req.query['ID.value'] + '.*' ,'$options': 'i' }})
+	}
+
+	if(req.query.despatchStatus)
+		filter['despatchStatus']=req.query.despatchStatus
+	
+	if((req.query.profileId || req.query['profileId.value'] || '')!='')
+		filter['profileId.value']=req.query.profileId || req.query['profileId.value']
+	
+	if((req.query.despatchAdviceTypeCode || req.query['despatchAdviceTypeCode.value'] || '')!='')
+		filter['despatchAdviceTypeCode.value']=req.query.despatchAdviceTypeCode || req.query['despatchAdviceTypeCode.value']
+	
+
+	if((req.query.date1 || '')!='')
+		filter['issueDate.value']={$gte:req.query.date1}
+	
+
+	if((req.query.date2 || '')!=''){
+		if(filter['issueDate.value']){
+			filter['issueDate.value']['$lte']=req.query.date2
+		}else{
+			filter['issueDate.value']={$lte:req.query.date2}
+		}
+	}
+
+	dbModel.despatches.paginate(filter,options,(err, resp)=>{
+		if(dberr(err,next)){
+			cb(resp)
+			// let liste=[]
+			// iteration(resp.docs,(item,cb1)=>{
+			// 	listeDuzenle(dbModel,item,(err,obj)=>{
+			// 		liste.push(obj)
+			// 		cb1(null)
+			// 	})
+				
+			// },0,true,(err)=>{
+				
+			// 	resp.docs=liste
+			// 	cb(resp)
+			// })
+		}
+	})
+}
+
+function getDespatchList_silinecek(ioType, dbModel, member, req, res, next, cb){
+	let options={page: (req.query.page || 1), 
+		populate:[
+		{path:'eIntegrator',select:'_id eIntegrator name username' }
+		],
+		
+		select:'_id ioType eIntegrator profileId ID uuid issueDate issueTime despatchAdviceTypeCode lineCountNumeric despatchLine localDocumentId deliveryCustomerParty despatchSupplierParty receiptAdvice despatchStatus despatchErrors localStatus localErrors',
 		sort:{'issueDate.value':'desc' , 'ID.value':'desc'}
 	}
 

@@ -511,7 +511,8 @@ function getOrderList(ioType, dbModel, member, req, res, next, cb) {
 			{ path: 'eIntegrator', select: '_id eIntegrator name username' }
 		],
 		select: '_id ioType eIntegrator profileId ID uuid issueDate issueTime orderTypeCode lineCountNumeric orderLine localDocumentId buyerCustomerParty sellerSupplierParty orderStatus orderErrors localStatus localErrors anticipatedMonetaryTotal documentCurrencyCode',
-		sort: { 'issueDate.value': 'desc', 'ID.value': 'desc' }
+		sort :{ _id:-1}
+		//sort: { 'issueDate.value': 'desc', 'ID.value': 'desc' }
 	}
 
 	if((req.query.pageSize || req.query.limit))
