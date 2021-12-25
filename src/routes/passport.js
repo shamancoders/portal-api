@@ -11,7 +11,7 @@ module.exports = function(req, res, cb) {
 				auth.request('/passport', req, res, (err, resp) => {
 					if(!err) {
 						// decoded
-						cb(resp.data)
+						cb(resp)
 					} else {
 						throw err
 					}
