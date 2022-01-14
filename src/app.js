@@ -55,6 +55,7 @@ module.exports = () => {
 				require('./init-static-values.js')()
 				require('./routes/index')(app)
 				testControllers(false)
+				require('./services/dbservice/dbservice').start()
 				
 			} else {
 				errorLog(err)

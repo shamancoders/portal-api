@@ -1,157 +1,159 @@
-module.exports = (member, req, res, next, cb)=>{
-	switch(req.method){
+module.exports = (member, req, res, next, cb) => {
+	switch (req.method) {
 		case 'GET':
-		if(req.params.param1!=undefined){
-			getOne(member,req,res,next,cb)
-		}else{
-			getList(member,req,res,next,cb)
-		}
-		break
+			if(req.params.param1 != undefined) {
+				getOne(member, req, res, next, cb)
+			} else {
+				getList(member, req, res, next, cb)
+			}
+			break
 		case 'POST':
-		post(member,req,res,next,cb)
-		break
+			post(member, req, res, next, cb)
+			break
 		case 'PUT':
-		put(member,req,res,next,cb)
-		break
+			put(member, req, res, next, cb)
+			break
 		case 'DELETE':
-		deleteItem(member,req,res,next,cb)
-		break
+			deleteItem(member, req, res, next, cb)
+			break
 		default:
-		error.method(req,next)
-		break
+			error.method(req, next)
+			break
 	}
 }
 
 
-function getOne(member,req,res,next,cb){
+function getOne(member, req, res, next, cb) {
 
-	let filter = {deleted:false}
-	filter._id=req.params.param1
+	let filter = { deleted: false }
+	filter._id = req.params.param1
 	db.dbdefines.findOne(filter, function(err, doc) {
-		if(dberr(err, next)){
-			if(dbnull(doc,next)){
-				if(doc.owner.toString()!=member._id.toString()){
-					next({code:'AUTH_ERROR',message:'Veri Ambarının sahibi değilsiniz'})
-				}else{
-					cb(doc)		
+		if(dberr(err, next)) {
+			if(dbnull(doc, next)) {
+				if(doc.owner.toString() != member._id.toString()) {
+					next({ code: 'AUTH_ERROR', message: 'Veri Ambarının sahibi değilsiniz' })
+				} else {
+					cb(doc)
 				}
-			
+
 			}
 		}
 	})
 }
 
 
-function getList(member,req,res,next,cb){
-	let options={page: (req.query.page || 1) }
-	if((req.query.pageSize || req.query.limit)){
-		options.limit=req.query.pageSize || req.query.limit
+function getList(member, req, res, next, cb) {
+	let options = { page: (req.query.page || 1) }
+	if((req.query.pageSize || req.query.limit)) {
+		options.limit = req.query.pageSize || req.query.limit
 	}
-	options.populate=[
-		{path:'owner', select:'_id username name lastName'},
-		{path:'authorizedMembers.memberId', select:'_id username name lastName'}
+	options.populate = [
+		{ path: 'owner', select: '_id username name lastName' },
+		{ path: 'authorizedMembers.memberId', select: '_id username name lastName' }
 	]
-	let filter ={ 
-		deleted:false, 
-		$or:[
-			{owner:member._id},
-			{'authorizedMembers.memberId':member._id}
+	let filter = {
+		deleted: false,
+		$or: [
+			{ owner: member._id },
+			{ 'authorizedMembers.memberId': member._id }
 		]
-	} 
+	}
+	db.dbdefines.paginate(filter, options, (err, resp) => {
 
-	db.dbdefines.paginate(filter,options,(err, resp)=>{
-		if(dberr(err, next)){
+		if(dberr(err, next)) {
+			// let index = 0
+			// function calistir(cb1) {
+			// 	if(index >= resp.docs.length)
+			// 		return cb1()
+			// 	resp.docs[index].isItMine=resp.docs[index].owner._id.toString()==member._id.toString()?true:false
 
-			let index=0
+			// 	dbStats(resp.docs[index], (err, statsObj) => {
+			// 		if(!err) {
+			// 			resp.docs[index].stats = statsObj
+			// 		}else{
+			// 			resp.docs[index].stats={ dataSizeText:err.message }
+			// 		}
+			// 		index++
+			// 		setTimeout(calistir, 0, cb1)
+			// 	})
+			// }
 
-			function calistir(cb){
-				if(index>=resp.docs.length)
-					return cb()
-				dbStats(resp.docs[index],(err,statsObj)=>{
-					if(!err){
-						resp.docs[index].stats=statsObj
-					}
-
-					index++
-					setTimeout(calistir,0,cb)
-				})
-			}
-			
-			calistir(()=>{
-				cb(resp)
-			})
+			// calistir(() => {
+			// 	eventLog('bitti')
+			// 	cb(resp)
+			// })
 		}
 	})
 }
 
-function post(member,req,res,next,cb){
+function post(member, req, res, next, cb) {
 	let data = req.body || {}
 	if(!data.hasOwnProperty("dbName"))
-		return next({code: "ERROR", message: "dbName is required."})
+		return next({ code: "ERROR", message: "dbName is required." })
 
-	if(data.dbName.trim()=="")
-		return next({code: "ERROR", message: "dbName must not be empty."})
+	if(data.dbName.trim() == "")
+		return next({ code: "ERROR", message: "dbName must not be empty." })
 
 
 	data.owner = member._id
 
 
-	if(data.hasOwnProperty("resonanceOptions")){
-		data.resonanceOptions.resonanceId = data.resonanceOptions.resonanceId.replaceAll(' ','').replaceAll('.','').replaceAll('-','')
+	if(data.hasOwnProperty("resonanceOptions")) {
+		data.resonanceOptions.resonanceId = data.resonanceOptions.resonanceId.replaceAll(' ', '').replaceAll('.', '').replaceAll('-', '')
 	}
 
 
-	db.dbdefines.findOne({owner:member._id,dbName:data.dbName,deleted:false},function(err,foundDoc){
+	db.dbdefines.findOne({ owner: member._id, dbName: data.dbName, deleted: false }, function(err, foundDoc) {
 		if(dberr(err, next))
-			if(foundDoc!=null){
-				return next({code: `DB_ALREADY_EXISTS`, message: `Database '${data.dbName}' already exists.`})
-			}else{
+			if(foundDoc != null) {
+				return next({ code: `DB_ALREADY_EXISTS`, message: `Database '${data.dbName}' already exists.` })
+			} else {
 				let newDoc = new db.dbdefines(data)
 				newDoc.save(function(err, newDoc2) {
-					if (!err) {
-						newDoc2.userDb=`userdb-${newDoc2._id}`
-						newDoc2.userDbHost=userMongoServerAddress()
-						newDoc2.save((err,newDoc3)=>{
-							if(dberr(err, next)){
+					if(!err) {
+						newDoc2.userDb = `userdb-${newDoc2._id}`
+						newDoc2.userDbHost = userMongoServerAddress()
+						newDoc2.save((err, newDoc3) => {
+							if(dberr(err, next)) {
 								cb(newDoc3)
 							}
 						})
 					} else {
-						next({code: err.name, message: err.message})
+						next({ code: err.name, message: err.message })
 					}
 				})
 			}
-		
+
 	})
 }
 
-function userMongoServerAddress(){
-	if((config.mongodb.server1 || '')!=''){
+function userMongoServerAddress() {
+	if((config.mongodb.server1 || '') != '') {
 		return config.mongodb.server1
-	}else if((config.mongodb.server2 || '')!=''){
+	} else if((config.mongodb.server2 || '') != '') {
 		return config.mongodb.server2
-	}else if((config.mongodb.server3 || '')!=''){
+	} else if((config.mongodb.server3 || '') != '') {
 		return config.mongodb.server3
-	}else{
+	} else {
 		return config.mongodb.master || ''
 	}
 }
 
-function put(member,req,res,next,cb){
-	if(req.params.param1==undefined)
+function put(member, req, res, next, cb) {
+	if(req.params.param1 == undefined)
 		error.param1(req)
-	
+
 	let data = req.body || {}
 	data._id = req.params.param1
-	
+
 	data.modifiedDate = new Date()
-	db.dbdefines.findOne({ _id: data._id, owner : member._id}, (err, doc)=>{
+	db.dbdefines.findOne({ _id: data._id, owner: member._id }, (err, doc) => {
 		if(dberr(err, next))
-			if(dbnull(doc, next)){
+			if(dbnull(doc, next)) {
 
 				let doc2 = Object.assign(doc, data)
 				let newDoc = new db.dbdefines(doc2)
-				newDoc.save((err, newDoc2)=>{
+				newDoc.save((err, newDoc2) => {
 					if(dberr(err, next))
 						cb(newDoc2)
 				})
@@ -159,21 +161,21 @@ function put(member,req,res,next,cb){
 	})
 }
 
-function deleteItem(member,req,res,next,cb){
-	if(req.params.param1==undefined)
+function deleteItem(member, req, res, next, cb) {
+	if(req.params.param1 == undefined)
 		error.param1(req)
 
 	let data = req.body || {}
 	data._id = req.params.param1
 
-	db.dbdefines.findOne({ _id: data._id, owner : member._id, deleted:false}, (err, doc)=>{
+	db.dbdefines.findOne({ _id: data._id, owner: member._id, deleted: false }, (err, doc) => {
 		if(dberr(err, next))
-			if(dbnull(doc, next)){
-				doc.deleted=true
+			if(dbnull(doc, next)) {
+				doc.deleted = true
 				doc.modifiedDate = new Date()
 				doc.save(function(err, newDoc2) {
-					if(dberr(err,next)){
-						cb({success: true})
+					if(dberr(err, next)) {
+						cb({ success: true })
 					}
 				})
 			}
