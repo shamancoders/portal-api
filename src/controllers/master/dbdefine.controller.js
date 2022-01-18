@@ -61,27 +61,10 @@ function getList(member, req, res, next, cb) {
 	db.dbdefines.paginate(filter, options, (err, resp) => {
 
 		if(dberr(err, next)) {
-			// let index = 0
-			// function calistir(cb1) {
-			// 	if(index >= resp.docs.length)
-			// 		return cb1()
-			// 	resp.docs[index].isItMine=resp.docs[index].owner._id.toString()==member._id.toString()?true:false
-
-			// 	dbStats(resp.docs[index], (err, statsObj) => {
-			// 		if(!err) {
-			// 			resp.docs[index].stats = statsObj
-			// 		}else{
-			// 			resp.docs[index].stats={ dataSizeText:err.message }
-			// 		}
-			// 		index++
-			// 		setTimeout(calistir, 0, cb1)
-			// 	})
-			// }
-
-			// calistir(() => {
-			// 	eventLog('bitti')
-			// 	cb(resp)
-			// })
+			resp.docs.forEach((e)=>{
+				e.isItMine=e.owner._id.toString()==member._id.toString()?true:false
+			})
+			cb(resp)
 		}
 	})
 }
