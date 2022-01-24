@@ -229,7 +229,7 @@ function post(dbModel, member, req, res, next, cb){
 
 function importOutbox(dbModel, member, req, res, next, cb){
 	let data = req.body || {}
-	
+	console.log(`importOutbox:`, data)
 	if(!data.files)
 		return next({code: 'WRONG_PARAMETER', message: 'files elemani bulunamadi'})
 
