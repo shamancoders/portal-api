@@ -2,7 +2,7 @@
 	"name": "portal-api",
 	"version": "2.0.1",
 	"description": "Gany Portal ERP Rest API",
-	"config_file": "c:/arge/ganygo/.ggconfig/config-all.json",
+	"config_file": "c:/arge/tr216/.config/config-all.json",
 	"passport_api": "http://pass.ganygo.com/auth",
 	"passport_login": "http://pass.ganygo.com/login",
 	"httpserver": {
