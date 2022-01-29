@@ -63,8 +63,6 @@ function clientControllers(app) {
 						}
 						
 						dbModel.free()
-						delete dbModel
-
 					})
 				} else {
 
